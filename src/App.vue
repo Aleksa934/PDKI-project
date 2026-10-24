@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, reactive } from 'vue';
+import { ref, reactive, watch } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import type { Plant, CartItem } from '@/models/plant.model';
 import type { User } from '@/models/user.model';
@@ -7,9 +7,23 @@ import type { User } from '@/models/user.model';
 const router = useRouter();
 const route = useRoute();
 
-const cart = ref<CartItem[]>([]);
-const currentUser = ref<User | null>(null);
+// Inicijalizacija stanja iz localStorage-a da se podaci ne gube na F5
+const cart = ref<CartItem[]>(JSON.parse(localStorage.getItem('flora_cart') || '[]'));
+const currentUser = ref<User | null>(JSON.parse(localStorage.getItem('flora_user') || 'null'));
 const notificationMessage = ref('');
+
+// Automatsko čuvanje korpe i korisnika pri svakoj promeni
+watch(cart, (newCart) => {
+  localStorage.setItem('flora_cart', JSON.stringify(newCart));
+}, { deep: true });
+
+watch(currentUser, (newUser) => {
+  if (newUser) {
+    localStorage.setItem('flora_user', JSON.stringify(newUser));
+  } else {
+    localStorage.removeItem('flora_user');
+  }
+}, { deep: true });
 
 const showAuthModal = ref(false);
 const authMode = ref<'login' | 'register'>('login');
@@ -24,10 +38,19 @@ const chatbotOptions = [
   { title: 'Kako funkcioniše rezervacija?', reply: 'Rezervacijom stavljate biljku u korpu, a nakon dostave je možete oceniti.' }
 ];
 
+const showToast = (msg: string) => {
+  notificationMessage.value = msg;
+  setTimeout(() => { 
+    if (notificationMessage.value === msg) {
+      notificationMessage.value = ''; 
+    }
+  }, 3500);
+};
+
 const goTo = (path: string) => {
   if (path === '/cart' && !currentUser.value) {
     showAuthModal.value = true;
-    notificationMessage.value = 'Morate biti prijavljeni da biste pristupili korpi.';
+    showToast('Morate biti prijavljeni da biste pristupili korpi.');
     return;
   }
   router.push(path);
@@ -36,7 +59,7 @@ const goTo = (path: string) => {
 const handleReserve = (plant: Plant) => {
   if (!currentUser.value) {
     showAuthModal.value = true;
-    notificationMessage.value = 'Prijavite se da biste izvršili rezervaciju!';
+    showToast('Prijavite se da biste izvršili rezervaciju!');
     return;
   }
   const existing = cart.value.find(i => i.id === plant.id && i.status === 'rezervisano');
@@ -53,8 +76,7 @@ const handleReserve = (plant: Plant) => {
       mojaRecenzija: ''
     });
   }
-  notificationMessage.value = `Uspešno rezervisano: ${plant.name}!`;
-  setTimeout(() => { notificationMessage.value = ''; }, 3000);
+  showToast(`Uspešno rezervisano: ${plant.name}!`);
 };
 
 const handleAuth = () => {
@@ -71,20 +93,18 @@ const handleAuth = () => {
     };
   }
   showAuthModal.value = false;
-  notificationMessage.value = `Dobrodošli, ${currentUser.value.ime}!`;
-  setTimeout(() => { notificationMessage.value = ''; }, 3000);
+  showToast(`Dobrodošli, ${currentUser.value.ime}!`);
 };
 
 const logout = () => {
   currentUser.value = null;
   router.push('/');
-  notificationMessage.value = 'Odjavljeni ste.';
-  setTimeout(() => { notificationMessage.value = ''; }, 3000);
+  showToast('Odjavljeni ste.');
 };
 </script>
 
 <template>
-  <div class="min-h-screen flex flex-col justify-between bg-slate-50 text-slate-800">
+  <div class="min-h-screen flex flex-col justify-between bg-slate-50 text-slate-800 relative">
     <!-- Header -->
     <header class="bg-emerald-800 text-white shadow-lg sticky top-0 z-40">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
@@ -126,24 +146,28 @@ const logout = () => {
 
     <!-- Main Content -->
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-grow w-full">
-      <div v-if="notificationMessage" class="mb-6 p-4 rounded-2xl bg-emerald-100 border border-emerald-300 text-emerald-900 flex items-center justify-between shadow-sm">
-        <span>{{ notificationMessage }}</span>
-        <button @click="notificationMessage = ''" class="font-bold">&times;</button>
-      </div>
-
       <router-view 
         :current-user="currentUser" 
         :cart="cart"
         @reserve="handleReserve"
         @remove="(id: number) => cart = cart.filter(i => i.cartId !== id)"
         @toggle-status="(item: CartItem) => item.status = item.status === 'rezervisano' ? 'pristiglo' : 'rezervisano'"
-        @save-rating="(item: CartItem) => { notificationMessage = 'Ocena uspešno sačuvana!'; setTimeout(() => notificationMessage = '', 3000); }"
-        @confirm="() => { notificationMessage = 'Rezervacija uspešno potvrđena!'; cart.forEach(i => i.status = 'pristiglo'); setTimeout(() => notificationMessage = '', 3000); }"
+        @save-rating="(item: CartItem) => showToast('Ocena uspešno sačuvana!')"
+        @confirm="() => { cart.forEach(i => i.status = 'pristiglo'); showToast('Rezervacija uspešno potvrđena!'); }"
         @go-catalog="router.push('/')"
         @require-auth="showAuthModal = true"
-        @save-profile="(u: User) => { currentUser = u; notificationMessage = 'Profil uspešno sačuvan!'; setTimeout(() => notificationMessage = '', 3000); }"
+        @save-profile="(u: User) => { currentUser = u; showToast('Profil uspešno sačuvan!'); }"
       />
     </main>
+
+    <!-- Modern Floating Toast Notification -->
+    <transition name="fade">
+      <div v-if="notificationMessage" class="fixed bottom-6 left-6 z-50 bg-slate-900 text-white px-5 py-3 rounded-2xl shadow-2xl flex items-center space-x-3 border border-slate-700 text-sm">
+        <i class="fa-solid fa-circle-info text-emerald-400 text-lg"></i>
+        <span>{{ notificationMessage }}</span>
+        <button @click="notificationMessage = ''" class="text-slate-400 hover:text-white ml-2 font-bold">&times;</button>
+      </div>
+    </transition>
 
     <!-- Auth Modal -->
     <div v-if="showAuthModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
