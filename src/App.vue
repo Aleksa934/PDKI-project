@@ -56,10 +56,11 @@ const showToast = (msg: string) => {
   }, 3500);
 };
 
+// Zaštita za korpu i profil
 const goTo = (path: string) => {
-  if (path === '/cart' && !currentUser.value) {
+  if ((path === '/cart' || path === '/profile') && !currentUser.value) {
     showAuthModal.value = true;
-    showToast('Morate biti prijavljeni da biste pristupili korpi.');
+    showToast('Morate biti prijavljeni da biste pristupili ovoj stranici.');
     return;
   }
   router.push(path);
@@ -105,7 +106,7 @@ const handleAuth = () => {
   showToast(`Dobrodošli, ${currentUser.value.ime}!`);
 };
 
-// Funkcija za odjavu sa dodatim confirm dijalogom
+// Odjava sa potvrdom
 const logout = () => {
   if (window.confirm('Da li ste sigurni da želite da se odjavite?')) {
     currentUser.value = null;
