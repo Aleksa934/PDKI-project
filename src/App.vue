@@ -296,7 +296,7 @@ const logout = () => {
 
     <!-- Footer -->
     <footer class="print-hidden bg-slate-900 dark:bg-slate-950 text-slate-400 text-xs py-8 border-t border-slate-800 dark:border-slate-900 mt-12 text-center">
-      <p class="font-semibold text-slate-300">Programiranje i Dizajn Korisničkih Interfejsa - Projekat</p>
+      <p class="font-semibold text-slate-300">Flora Oaza all rights reserved</p>
     </footer>
   </div>
 </template>
