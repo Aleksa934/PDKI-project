@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted, ref, watch } from 'vue';
+import { onMounted, onUnmounted, reactive, ref, watch } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import type { Plant, CartItem } from '@/models/plant.model';
 import type { User } from '@/models/user.model';
@@ -10,7 +10,11 @@ const route = useRoute();
 
 const cart = ref<CartItem[]>(JSON.parse(localStorage.getItem('flora_cart') || '[]'));
 const currentUser = ref<User | null>(JSON.parse(localStorage.getItem('flora_user') || 'null'));
-const notificationMessage = ref('');
+const notification = reactive<{ message: string; type: 'success' | 'error' | 'info' }>({
+  message: '',
+  type: 'success'
+});
+let toastTimeout: ReturnType<typeof setTimeout> | undefined;
 
 // Dark mode state sa automatskim dodavanjem/uklanjanjem klase sa html elementa
 const isDark = ref<boolean>(JSON.parse(localStorage.getItem('flora_dark') || 'false'));
@@ -55,20 +59,26 @@ const toggleDark = () => {
   isDark.value = !isDark.value;
 };
 
-const showToast = (msg: string) => {
-  notificationMessage.value = msg;
-  setTimeout(() => { 
-    if (notificationMessage.value === msg) {
-      notificationMessage.value = ''; 
+const showToast = (msg: string, type: 'success' | 'error' | 'info' = 'success') => {
+  notification.message = msg;
+  notification.type = type;
+  if (toastTimeout) clearTimeout(toastTimeout);
+  toastTimeout = setTimeout(() => {
+    if (notification.message === msg) {
+      notification.message = '';
     }
   }, 3500);
 };
+
+onUnmounted(() => {
+  if (toastTimeout) clearTimeout(toastTimeout);
+});
 
 // Zaštita za korpu i profil - preusmerava na /login umesto otvaranja modala
 const goTo = (path: string) => {
   if ((path === '/cart' || path === '/profile') && !currentUser.value) {
     router.push('/login');
-    showToast('Morate biti prijavljeni da biste pristupili ovoj stranici.');
+    showToast('Morate biti prijavljeni da biste pristupili ovoj stranici.', 'info');
     return;
   }
   router.push(path);
@@ -77,7 +87,7 @@ const goTo = (path: string) => {
 const handleReserve = (plant: Plant) => {
   if (!currentUser.value) {
     router.push('/login');
-    showToast('Prijavite se da biste izvršili rezervaciju!');
+    showToast('Prijavite se da biste izvršili rezervaciju!', 'info');
     return;
   }
   const existing = cart.value.find(i => i.id === plant.id && i.status === 'rezervisano');
@@ -97,12 +107,17 @@ const handleReserve = (plant: Plant) => {
   showToast(`Uspešno rezervisano: ${plant.name}!`);
 };
 
+const removeCartItem = (id: number) => {
+  cart.value = cart.value.filter(item => item.cartId !== id);
+  showToast('Rezervacija je uklonjena iz korpe.', 'error');
+};
+
 // Odjava sa potvrdom
 const logout = () => {
   if (window.confirm('Da li ste sigurni da želite da se odjavite?')) {
     currentUser.value = null;
     router.push('/');
-    showToast('Odjavljeni ste.');
+    showToast('Odjavljeni ste.', 'info');
   }
 };
 </script>
@@ -126,7 +141,7 @@ const logout = () => {
           </button>
           <button @click="goTo('/cart')" :class="route.path === '/cart' ? 'bg-emerald-700 dark:bg-emerald-900 font-semibold' : 'hover:bg-emerald-700/60'" class="px-4 py-2 rounded-xl transition text-sm flex items-center gap-2 relative">
             <i class="fa-solid fa-basket-shopping"></i> Korpa Rezervacija
-            <span v-if="cart.length > 0" class="bg-amber-400 text-slate-900 text-xs font-bold px-2 py-0.5 rounded-full">{{ cart.length }}</span>
+            <span v-if="cart.length > 0" class="bg-amber-400 text-slate-900 text-xs font-bold px-2 py-0.5 rounded-full animate-bounce">{{ cart.length }}</span>
           </button>
           <button @click="goTo('/profile')" :class="route.path === '/profile' ? 'bg-emerald-700 dark:bg-emerald-900 font-semibold' : 'hover:bg-emerald-700/60'" class="px-4 py-2 rounded-xl transition text-sm flex items-center gap-2">
             <i class="fa-solid fa-user-gear"></i> Moj Profil
@@ -159,7 +174,7 @@ const logout = () => {
         :current-user="currentUser" 
         :cart="cart"
         @reserve="handleReserve"
-        @remove="(id: number) => cart = cart.filter(i => i.cartId !== id)"
+        @remove="removeCartItem"
         @toggle-status="(item: CartItem) => item.status = item.status === 'rezervisano' ? 'pristiglo' : 'rezervisano'"
         @save-rating="(item: CartItem) => showToast('Ocena uspešno sačuvana!')"
         @confirm="() => { cart.forEach(i => i.status = 'pristiglo'); showToast('Rezervacija uspešno potvrđena!'); }"
@@ -171,10 +186,18 @@ const logout = () => {
 
     <!-- Toast Notification -->
     <transition name="fade">
-      <div v-if="notificationMessage" class="fixed bottom-6 left-6 z-50 bg-slate-900 dark:bg-slate-800 text-white px-5 py-3 rounded-2xl shadow-2xl flex items-center space-x-3 border border-slate-700 text-sm">
-        <i class="fa-solid fa-circle-info text-emerald-400 text-lg"></i>
-        <span>{{ notificationMessage }}</span>
-        <button @click="notificationMessage = ''" class="text-slate-400 hover:text-white ml-2 font-bold">&times;</button>
+      <div v-if="notification.message" :class="{
+        'bg-emerald-900 border-emerald-700 text-emerald-100': notification.type === 'success',
+        'bg-rose-900 border-rose-700 text-rose-100': notification.type === 'error',
+        'bg-slate-900 border-slate-700 text-white': notification.type === 'info'
+      }" class="fixed bottom-6 left-6 z-50 px-5 py-3 rounded-2xl shadow-2xl flex items-center space-x-3 border text-sm">
+        <i :class="{
+          'fa-solid fa-circle-check text-emerald-400': notification.type === 'success',
+          'fa-solid fa-circle-exclamation text-rose-400': notification.type === 'error',
+          'fa-solid fa-circle-info text-blue-400': notification.type === 'info'
+        }" class="text-lg"></i>
+        <span>{{ notification.message }}</span>
+        <button @click="notification.message = ''" class="text-slate-400 hover:text-white ml-2 font-bold">&times;</button>
       </div>
     </transition>
 

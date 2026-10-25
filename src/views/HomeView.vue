@@ -16,7 +16,7 @@ const emit = defineEmits<{
 const plants = ref<Plant[]>([]);
 const loading = ref(true);
 const showAdvancedFilters = ref(false);
-const selectedPlantModal = ref<Plant | null>(null);
+const selectedPlantForQuickView = ref<Plant | null>(null);
 
 const filters = ref({
   query: '',
@@ -57,6 +57,10 @@ const handleReserve = (plant: Plant) => {
     return;
   }
   emit('reserve', plant);
+};
+
+const openQuickView = (plant: Plant) => {
+  selectedPlantForQuickView.value = plant;
 };
 
 const resetFilters = () => {
@@ -161,7 +165,9 @@ const formatDate = (dateStr: string) => {
               <span class="text-xs text-emerald-700 font-semibold uppercase">{{ plant.target_audience }}</span>
               <span class="text-xs text-slate-400">{{ formatDate(plant.production_date) }}</span>
             </div>
-            <h3 class="text-lg font-bold text-slate-900 mb-1">{{ plant.name }}</h3>
+            <button @click="openQuickView(plant)" class="text-left text-lg font-bold text-slate-900 hover:text-emerald-700 mb-1">
+              {{ plant.name }}
+            </button>
             <p class="text-xs italic text-slate-500 mb-2">{{ plant.latin_name }}</p>
             <p class="text-xs text-slate-600 line-clamp-2 mb-4">{{ plant.description }}</p>
           </div>
@@ -173,7 +179,7 @@ const formatDate = (dateStr: string) => {
             <div class="flex items-center justify-between border-t border-slate-100 pt-3">
               <span class="text-xl font-extrabold text-emerald-700">{{ plant.price.toLocaleString('sr-RS') }} {{ plant.currency }}</span>
               <div class="flex gap-2">
-                <button @click="selectedPlantModal = plant" class="p-2.5 text-slate-600 bg-slate-100 hover:bg-emerald-50 rounded-xl transition"><i class="fa-solid fa-eye"></i></button>
+                <button @click="openQuickView(plant)" title="Brzi pregled" class="p-2.5 text-slate-600 bg-slate-100 hover:bg-emerald-50 rounded-xl transition"><i class="fa-solid fa-eye"></i></button>
                 <button @click="handleReserve(plant)" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-4 py-2 rounded-xl text-sm transition flex items-center gap-2">
                   <i class="fa-solid fa-cart-plus"></i> Rezerviši
                 </button>
@@ -184,35 +190,38 @@ const formatDate = (dateStr: string) => {
       </div>
     </div>
 
-    <!-- Modal za detalje -->
-    <div v-if="selectedPlantModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div class="bg-white rounded-3xl max-w-2xl w-full p-6 sm:p-8 shadow-2xl relative max-h-[90vh] overflow-y-auto">
-        <button @click="selectedPlantModal = null" class="absolute top-4 right-4 text-slate-400 hover:text-slate-700 text-2xl font-bold">&times;</button>
+    <!-- Quick View Modal -->
+    <div v-if="selectedPlantForQuickView" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4" @click.self="selectedPlantForQuickView = null">
+      <div class="bg-white dark:bg-slate-900 dark:text-white rounded-3xl max-w-2xl w-full p-6 sm:p-8 shadow-2xl relative max-h-[90vh] overflow-y-auto border border-slate-200 dark:border-slate-800">
+        <button @click="selectedPlantForQuickView = null" aria-label="Zatvori brzi pregled" class="absolute top-4 right-4 text-slate-400 hover:text-slate-700 dark:hover:text-white text-2xl font-bold">&times;</button>
         <div class="flex items-center gap-3 mb-2">
-          <span class="bg-emerald-100 text-emerald-800 text-xs font-bold px-3 py-1 rounded-full">{{ selectedPlantModal.category }}</span>
-          <span class="text-xs text-slate-500">{{ selectedPlantModal.climate }} / {{ selectedPlantModal.season }}</span>
+          <span class="bg-emerald-100 text-emerald-800 text-xs font-bold px-3 py-1 rounded-full">{{ selectedPlantForQuickView.category }}</span>
+          <span class="text-xs text-slate-500 dark:text-slate-400">{{ selectedPlantForQuickView.climate }} / {{ selectedPlantForQuickView.season }}</span>
         </div>
-        <h3 class="text-2xl font-extrabold text-slate-900 mb-1">{{ selectedPlantModal.name }}</h3>
-        <p class="text-xs italic text-slate-500 mb-4">{{ selectedPlantModal.latin_name }}</p>
+        <h3 class="text-2xl font-extrabold text-slate-900 dark:text-white mb-1">{{ selectedPlantForQuickView.name }}</h3>
+        <p class="text-xs italic text-slate-500 dark:text-slate-400 mb-4">{{ selectedPlantForQuickView.latin_name }}</p>
         
-        <img :src="selectedPlantModal.image_url" :alt="selectedPlantModal.image_alt" class="w-full h-48 object-contain bg-slate-50 rounded-2xl mb-4 border">
+        <img :src="selectedPlantForQuickView.image_url" :alt="selectedPlantForQuickView.image_alt" class="w-full h-48 object-contain bg-slate-50 dark:bg-slate-800 rounded-2xl mb-4 border border-slate-200 dark:border-slate-700">
         
-        <p class="text-xs text-slate-700 mb-4 leading-relaxed">{{ selectedPlantModal.description }}</p>
+        <p class="text-xs text-slate-700 dark:text-slate-300 mb-4 leading-relaxed">{{ selectedPlantForQuickView.description }}</p>
         
         <div class="space-y-2 mb-6 text-xs">
-          <div class="bg-emerald-50 p-3 rounded-xl border border-emerald-100">
+          <div class="bg-emerald-50 dark:bg-emerald-950/40 p-3 rounded-xl border border-emerald-100 dark:border-emerald-900">
             <strong class="text-emerald-900 block mb-1">Uputstvo za sadnju:</strong> 
-            <span class="text-slate-700">{{ selectedPlantModal.planting_instructions }}</span>
+            <span class="text-slate-700 dark:text-slate-300">{{ selectedPlantForQuickView.planting_instructions }}</span>
           </div>
-          <div class="bg-teal-50 p-3 rounded-xl border border-teal-100">
+          <div class="bg-teal-50 dark:bg-teal-950/40 p-3 rounded-xl border border-teal-100 dark:border-teal-900">
             <strong class="text-teal-900 block mb-1">Uputstvo za negu:</strong> 
-            <span class="text-slate-700">{{ selectedPlantModal.care_instructions }}</span>
+            <span class="text-slate-700 dark:text-slate-300">{{ selectedPlantForQuickView.care_instructions }}</span>
           </div>
+          <p><strong>Ciljna grupa:</strong> {{ selectedPlantForQuickView.target_audience }}</p>
+          <p><strong>Svetlost:</strong> {{ selectedPlantForQuickView.light_requirement }}</p>
+          <p><strong>Zalivanje:</strong> {{ selectedPlantForQuickView.watering }}</p>
         </div>
 
         <div class="flex items-center justify-between border-t pt-4">
-          <span class="text-2xl font-extrabold text-emerald-700">{{ selectedPlantModal.price.toLocaleString('sr-RS') }} {{ selectedPlantModal.currency }}</span>
-          <button @click="handleReserve(selectedPlantModal); selectedPlantModal = null;" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-6 py-3 rounded-xl text-sm transition">
+          <span class="text-2xl font-extrabold text-emerald-700 dark:text-emerald-400">{{ selectedPlantForQuickView.price.toLocaleString('sr-RS') }} {{ selectedPlantForQuickView.currency }}</span>
+          <button @click="handleReserve(selectedPlantForQuickView); selectedPlantForQuickView = null;" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-6 py-3 rounded-xl text-sm transition">
             Rezerviši Odmah
           </button>
         </div>

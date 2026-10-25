@@ -130,5 +130,38 @@ const handleSave = () => {
         </form>
       </div>
     </div>
+
+    <section v-if="currentUser" class="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
+      <div>
+        <h3 class="font-bold text-lg text-slate-900 dark:text-white flex items-center gap-2">
+          <i class="fa-solid fa-clock-rotate-left text-emerald-600"></i> Istorija i arhiva rezervacija
+        </h3>
+        <p class="text-xs text-slate-600 dark:text-slate-400">Pregled biljaka iz vaših rezervacija.</p>
+      </div>
+
+      <div class="divide-y divide-slate-100 dark:divide-slate-800">
+        <div v-for="item in cart" :key="item.cartId" class="py-3 flex flex-wrap items-center justify-between gap-2 text-sm">
+          <div class="flex items-center gap-3">
+            <span class="font-bold text-slate-800 dark:text-slate-200">{{ item.name }}</span>
+            <span
+              class="text-xs px-2 py-0.5 rounded-full font-semibold"
+              :class="item.status === 'pristiglo'
+                ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300'
+                : item.status === 'otkazano'
+                  ? 'bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300'
+                  : 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300'"
+            >
+              {{ item.status }}
+            </span>
+          </div>
+          <span class="text-xs text-slate-500 dark:text-slate-400">
+            {{ item.kolicina }} kom. · {{ (item.price * item.kolicina).toLocaleString('sr-RS') }} {{ item.currency }}
+          </span>
+        </div>
+        <p v-if="cart.length === 0" class="text-xs text-slate-500 py-4 italic text-center">
+          Nemate prethodnih rezervacija u arhivi.
+        </p>
+      </div>
+    </section>
   </div>
 </template>
