@@ -2,6 +2,7 @@
 import { computed, ref, reactive, watch } from 'vue';
 import type { User } from '@/models/user.model';
 import type { CartItem } from '@/models/plant.model';
+import { changeAccountPassword, meetsPasswordRequirements } from '@/services/auth.service';
 
 const props = defineProps<{
   currentUser: User | null;
@@ -26,6 +27,13 @@ const form = reactive<User>({
   adresa: props.currentUser?.adresa || '',
   omiljeneBiljke: props.currentUser?.omiljeneBiljke || ''
 });
+const passwordForm = reactive({
+  currentPassword: '',
+  newPassword: '',
+  confirmation: ''
+});
+const passwordMessage = ref('');
+const passwordMessageIsError = ref(false);
 
 // Sinhronizacija ako se korisnik promeni spolja
 watch(() => props.currentUser, (newUser) => {
@@ -41,6 +49,39 @@ watch(() => props.currentUser, (newUser) => {
 
 const handleSave = () => {
   emit('save-profile', { ...form, email: form.email.trim().toLowerCase() });
+};
+
+const handlePasswordChange = async () => {
+  passwordMessage.value = '';
+  passwordMessageIsError.value = false;
+
+  if (!props.currentUser) return;
+  if (!meetsPasswordRequirements(passwordForm.newPassword)) {
+    passwordMessage.value = 'Nova lozinka mora imati najmanje 7 karaktera, veliko slovo i broj.';
+    passwordMessageIsError.value = true;
+    return;
+  }
+  if (passwordForm.newPassword !== passwordForm.confirmation) {
+    passwordMessage.value = 'Nova lozinka i potvrda se ne podudaraju.';
+    passwordMessageIsError.value = true;
+    return;
+  }
+
+  const updated = await changeAccountPassword(
+    props.currentUser.email,
+    passwordForm.currentPassword,
+    passwordForm.newPassword
+  );
+  if (!updated) {
+    passwordMessage.value = 'Promena nije uspela. Proverite trenutnu lozinku i pokušajte ponovo.';
+    passwordMessageIsError.value = true;
+    return;
+  }
+
+  passwordForm.currentPassword = '';
+  passwordForm.newPassword = '';
+  passwordForm.confirmation = '';
+  passwordMessage.value = 'Lozinka je uspešno promenjena.';
 };
 </script>
 
@@ -134,6 +175,32 @@ const handleSave = () => {
         </form>
       </div>
     </div>
+
+    <section v-if="currentUser" class="bg-white dark:bg-slate-900 p-8 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm">
+      <h3 class="text-lg font-bold text-slate-900 dark:text-white mb-2">Promena lozinke</h3>
+      <p class="text-sm text-slate-500 dark:text-slate-400 mb-5">Potvrdite trenutnu lozinku i unesite novu lozinku za prijavljivanje.</p>
+      <form @submit.prevent="handlePasswordChange" class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div>
+          <label class="block text-xs font-bold uppercase text-slate-500 dark:text-slate-400 mb-1" for="current-password">Trenutna lozinka</label>
+          <input id="current-password" v-model="passwordForm.currentPassword" type="password" autocomplete="current-password" required class="w-full p-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-transparent text-sm dark:text-white">
+        </div>
+        <div>
+          <label class="block text-xs font-bold uppercase text-slate-500 dark:text-slate-400 mb-1" for="new-password">Nova lozinka</label>
+          <input id="new-password" v-model="passwordForm.newPassword" type="password" autocomplete="new-password" required aria-describedby="new-password-requirements" class="w-full p-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-transparent text-sm dark:text-white">
+          <span id="new-password-requirements" class="mt-1 block text-xs text-slate-500 dark:text-slate-400">Najmanje 7 karaktera, jedno veliko slovo i jedan broj.</span>
+        </div>
+        <div>
+          <label class="block text-xs font-bold uppercase text-slate-500 dark:text-slate-400 mb-1" for="confirm-new-password">Potvrdite novu lozinku</label>
+          <input id="confirm-new-password" v-model="passwordForm.confirmation" type="password" autocomplete="new-password" required class="w-full p-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-transparent text-sm dark:text-white">
+        </div>
+        <p v-if="passwordMessage" role="status" :class="passwordMessageIsError ? 'text-rose-600 dark:text-rose-400' : 'text-emerald-700 dark:text-emerald-400'" class="sm:col-span-3 text-sm">
+          {{ passwordMessage }}
+        </p>
+        <button type="submit" class="sm:col-span-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-xl text-sm transition shadow-md">
+          Promeni lozinku
+        </button>
+      </form>
+    </section>
 
     <section v-if="currentUser" class="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
       <div>

@@ -21,7 +21,10 @@ const showAdvancedFilters = ref(false);
 const selectedPlantForQuickView = ref<Plant | null>(null);
 
 const filters = ref({
-  query: '',
+  nameQuery: '',
+  descriptionQuery: '',
+  plantingQuery: '',
+  careQuery: '',
   reviewQuery: '',
   category: '',
   plantType: '',
@@ -42,17 +45,18 @@ onMounted(async () => {
 });
 
 const filteredPlants = computed(() => {
-  const query = filters.value.query.trim().toLowerCase();
+  const nameQuery = filters.value.nameQuery.trim().toLowerCase();
+  const descriptionQuery = filters.value.descriptionQuery.trim().toLowerCase();
+  const plantingQuery = filters.value.plantingQuery.trim().toLowerCase();
+  const careQuery = filters.value.careQuery.trim().toLowerCase();
   const reviewQuery = filters.value.reviewQuery.trim().toLowerCase();
 
   return plants.value.filter(p => {
     const reviews = getReviews(p);
-    const searchableText = [
-      p.name, p.latin_name, p.description, p.planting_instructions, p.care_instructions,
-      p.plant_type, p.category, p.climate, p.season, p.target_audience, p.intended_use,
-      ...reviews.map(review => review.comment)
-    ].join(' ').toLowerCase();
-    const matchQuery = !query || searchableText.includes(query);
+    const matchName = !nameQuery || `${p.name} ${p.latin_name}`.toLowerCase().includes(nameQuery);
+    const matchDescription = !descriptionQuery || p.description.toLowerCase().includes(descriptionQuery);
+    const matchPlanting = !plantingQuery || p.planting_instructions.toLowerCase().includes(plantingQuery);
+    const matchCare = !careQuery || p.care_instructions.toLowerCase().includes(careQuery);
     const matchReviewQuery = !reviewQuery || reviews.some(review => review.comment.toLowerCase().includes(reviewQuery));
     const matchCategory = !filters.value.category || p.category === filters.value.category;
     const matchType = !filters.value.plantType || p.plant_type === filters.value.plantType;
@@ -64,8 +68,9 @@ const filteredPlants = computed(() => {
     const matchDate = (!filters.value.fromDate || p.production_date >= filters.value.fromDate) &&
       (!filters.value.toDate || p.production_date <= filters.value.toDate);
 
-    return matchQuery && matchReviewQuery && matchCategory && matchType && matchClimate &&
-      matchSeason && matchGroup && matchPrice && matchRating && matchDate;
+    return matchName && matchDescription && matchPlanting && matchCare && matchReviewQuery &&
+      matchCategory && matchType && matchClimate && matchSeason && matchGroup &&
+      matchPrice && matchRating && matchDate;
   });
 });
 
@@ -88,7 +93,7 @@ const averageRating = (plant: Plant) => {
 };
 
 const highlightedParts = (text: string) => {
-  const query = filters.value.query.trim();
+  const query = filters.value.nameQuery.trim();
   if (!query) return [{ text, matched: false }];
 
   const parts: { text: string; matched: boolean }[] = [];
@@ -127,7 +132,10 @@ const openQuickView = (plant: Plant) => {
 
 const resetFilters = () => {
   filters.value = {
-    query: '',
+    nameQuery: '',
+    descriptionQuery: '',
+    plantingQuery: '',
+    careQuery: '',
     reviewQuery: '',
     category: '',
     plantType: '',
@@ -155,13 +163,18 @@ const formatDate = (dateStr: string) => {
       <h1 class="text-2xl sm:text-4xl font-extrabold mb-3">Pronađite savršenu biljku za Vaš dom</h1>
       <p class="text-emerald-100 max-w-2xl text-sm sm:text-base mb-6">Pretražujte naš bogati katalog sa detaljnim uputstvima za negu i recenzijama.</p>
       
-      <div class="grid grid-cols-1 md:grid-cols-4 gap-3 bg-white p-3 rounded-2xl text-slate-800 shadow-2xl">
-        <div class="relative md:col-span-2">
-          <i class="fa-solid fa-magnifying-glass absolute left-3 top-3.5 text-slate-400"></i>
-          <input v-model="filters.query" type="text" placeholder="Naziv, opis, sadnja, nega ili tip..." class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm">
+      <div class="grid grid-cols-1 md:grid-cols-6 gap-3 bg-white p-3 rounded-2xl text-slate-800 shadow-2xl">
+        <div class="md:col-span-2">
+          <label class="block text-xs font-bold text-slate-500 mb-1" for="plant-name-search">Naziv biljke</label>
+          <input id="plant-name-search" v-model="filters.nameQuery" type="search" placeholder="Naziv ili latinski naziv" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm">
         </div>
-        <div>
-          <select v-model="filters.category" class="w-full py-2.5 px-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm bg-white">
+        <div class="md:col-span-2">
+          <label class="block text-xs font-bold text-slate-500 mb-1" for="plant-description-search">Opis biljke</label>
+          <input id="plant-description-search" v-model="filters.descriptionQuery" type="search" placeholder="Pretražite opis" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm">
+        </div>
+        <div class="md:col-span-1">
+          <label class="block text-xs font-bold text-slate-500 mb-1" for="plant-category-filter">Kategorija</label>
+          <select id="plant-category-filter" v-model="filters.category" class="w-full py-2.5 px-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm bg-white">
             <option value="">Sve kategorije</option>
             <option value="Sobne biljke">Sobne biljke</option>
             <option value="Baštensko cveće">Baštensko cveće</option>
@@ -172,7 +185,7 @@ const formatDate = (dateStr: string) => {
             <option value="Začinsko i aromatično bilje">Začinsko bilje</option>
           </select>
         </div>
-        <button @click="showAdvancedFilters = !showAdvancedFilters" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold py-2.5 px-4 rounded-xl text-sm flex items-center justify-center gap-2 border border-slate-300">
+        <button @click="showAdvancedFilters = !showAdvancedFilters" class="md:mt-5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold py-2.5 px-4 rounded-xl text-sm flex items-center justify-center gap-2 border border-slate-300">
           <i class="fa-solid fa-sliders"></i> {{ showAdvancedFilters ? 'Sakrij Filtere' : 'Napredni Filteri' }}
         </button>
       </div>
@@ -180,6 +193,14 @@ const formatDate = (dateStr: string) => {
 
     <!-- Napredni Filteri -->
     <div v-if="showAdvancedFilters" class="bg-white p-6 rounded-2xl border border-slate-200 shadow-md grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div>
+        <label class="block text-xs font-bold uppercase text-slate-500 mb-1" for="planting-search">Uputstvo za sadnju</label>
+        <input id="planting-search" v-model="filters.plantingQuery" type="search" placeholder="Pretražite sadnju" class="w-full p-2.5 rounded-xl border border-slate-200 text-sm">
+      </div>
+      <div>
+        <label class="block text-xs font-bold uppercase text-slate-500 mb-1" for="care-search">Uputstvo za negu</label>
+        <input id="care-search" v-model="filters.careQuery" type="search" placeholder="Pretražite negu" class="w-full p-2.5 rounded-xl border border-slate-200 text-sm">
+      </div>
       <div>
         <label class="block text-xs font-bold uppercase text-slate-500 mb-1">Ciljna Grupa</label>
         <select v-model="filters.targetGroup" class="w-full p-2.5 rounded-xl border border-slate-200 text-sm">

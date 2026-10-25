@@ -2,7 +2,7 @@
 import { computed, reactive, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import type { User } from '@/models/user.model';
-import { registerAccount } from '@/services/auth.service';
+import { meetsPasswordRequirements, registerAccount } from '@/services/auth.service';
 
 const router = useRouter();
 const route = useRoute();
@@ -22,11 +22,7 @@ const passwordRequirements = computed(() => ({
   uppercase: /[A-ZČĆŠĐŽ]/.test(form.lozinka),
   number: /\d/.test(form.lozinka)
 }));
-const isPasswordValid = computed(() =>
-  passwordRequirements.value.length &&
-  passwordRequirements.value.uppercase &&
-  passwordRequirements.value.number
-);
+const isPasswordValid = computed(() => meetsPasswordRequirements(form.lozinka));
 
 const handleRegister = async () => {
   errorMessage.value = '';

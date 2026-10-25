@@ -35,6 +35,9 @@ const encodeSalt = (salt: Uint8Array<ArrayBuffer>): string =>
 const decodeSalt = (salt: string): Uint8Array<ArrayBuffer> =>
   new Uint8Array(salt.match(/.{2}/g)?.map(byte => Number.parseInt(byte, 16)) ?? []);
 
+export const meetsPasswordRequirements = (password: string): boolean =>
+  password.length >= 7 && /[A-ZČĆŠĐŽ]/.test(password) && /\d/.test(password);
+
 export const registerAccount = async (user: User, password: string): Promise<boolean> => {
   const accounts = getAccounts();
   const email = user.email.trim().toLowerCase();
@@ -83,6 +86,36 @@ export const updateAccountProfile = (currentEmail: string, user: User): boolean 
   }
 
   currentAccount.user = { ...user, email };
+  localStorage.setItem(ACCOUNTS_KEY, JSON.stringify(accounts));
+  return true;
+};
+
+export const changeAccountPassword = async (
+  email: string,
+  currentPassword: string,
+  newPassword: string
+): Promise<boolean> => {
+  if (!meetsPasswordRequirements(newPassword)) {
+    return false;
+  }
+
+  const accounts = getAccounts();
+  const account = accounts.find(
+    candidate => candidate.user.email.toLowerCase() === email.trim().toLowerCase()
+  );
+
+  if (!account) {
+    return false;
+  }
+
+  const currentHash = await hashPassword(currentPassword, decodeSalt(account.salt));
+  if (currentHash !== account.passwordHash) {
+    return false;
+  }
+
+  const salt = crypto.getRandomValues(new Uint8Array(16));
+  account.passwordHash = await hashPassword(newPassword, salt);
+  account.salt = encodeSalt(salt);
   localStorage.setItem(ACCOUNTS_KEY, JSON.stringify(accounts));
   return true;
 };
