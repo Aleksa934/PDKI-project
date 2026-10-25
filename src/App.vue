@@ -3,6 +3,7 @@ import { ref, reactive, watch } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import type { Plant, CartItem } from '@/models/plant.model';
 import type { User } from '@/models/user.model';
+import FloraChatbot from './components/FloraChatbot.vue';
 
 const router = useRouter();
 const route = useRoute();
@@ -49,15 +50,6 @@ const toggleDark = () => {
 const showAuthModal = ref(false);
 const authMode = ref<'login' | 'register'>('login');
 const authForm = reactive({ ime: '', prezime: '', email: '', lozinka: '', telefon: '', adresa: '' });
-
-const showChatbot = ref(false);
-const chatMessages = ref([
-  { sender: 'bot', text: 'Zdravo! Ja sam Flora Bot. Kako vam mogu pomoći oko izbora i negovanja biljaka danas?' }
-]);
-const chatbotOptions = [
-  { title: 'Koje biljke su najbolje za početnike?', reply: 'Za početnike preporučujemo Zamioculcas i Sansevieria!' },
-  { title: 'Kako funkcioniše rezervacija?', reply: 'Rezervacijom stavljate biljku u korpu, a nakon dostave je možete oceniti.' }
-];
 
 const showToast = (msg: string) => {
   notificationMessage.value = msg;
@@ -167,9 +159,6 @@ const logout = () => {
           <button v-else @click="showAuthModal = true" class="bg-amber-400 hover:bg-amber-300 text-slate-900 font-bold px-4 py-2 rounded-xl text-sm transition">
             Prijava
           </button>
-          <button @click="showChatbot = !showChatbot" class="p-2.5 bg-emerald-700 dark:bg-emerald-900 rounded-xl text-emerald-100 relative">
-            <i class="fa-solid fa-robot text-lg"></i>
-          </button>
         </div>
       </div>
     </header>
@@ -221,23 +210,8 @@ const logout = () => {
       </div>
     </div>
 
-    <!-- Chatbot -->
-    <div v-if="showChatbot" class="fixed bottom-6 right-6 w-80 bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border dark:border-slate-800 z-50 flex flex-col overflow-hidden">
-      <div class="bg-emerald-800 dark:bg-emerald-950 text-white p-4 flex items-center justify-between">
-        <h4 class="font-bold text-sm">Flora Bot</h4>
-        <button @click="showChatbot = false" class="text-lg font-bold">&times;</button>
-      </div>
-      <div class="p-4 h-60 overflow-y-auto space-y-2 bg-slate-50 dark:bg-slate-950 text-xs">
-        <div v-for="(m, idx) in chatMessages" :key="idx" :class="m.sender === 'bot' ? 'text-left' : 'text-right'">
-          <span :class="m.sender === 'bot' ? 'bg-white dark:bg-slate-900 border dark:border-slate-800 text-slate-800 dark:text-slate-200' : 'bg-emerald-600 text-white'" class="inline-block p-2.5 rounded-2xl">{{ m.text }}</span>
-        </div>
-      </div>
-      <div class="p-2 border-t dark:border-slate-800">
-        <button v-for="(opt, idx) in chatbotOptions" :key="idx" @click="chatMessages.push({sender:'user', text:opt.title}, {sender:'bot', text:opt.reply})" class="w-full text-left bg-slate-100 dark:bg-slate-800 hover:bg-emerald-50 dark:hover:bg-slate-700 p-2 rounded-lg text-xs mb-1 truncate">
-          👉 {{ opt.title }}
-        </button>
-      </div>
-    </div>
+    <!-- Plivajući Chatbot u donjem desnom uglu -->
+    <FloraChatbot />
 
     <!-- Footer -->
     <footer class="bg-slate-900 dark:bg-slate-950 text-slate-400 text-xs py-8 border-t border-slate-800 dark:border-slate-900 mt-12 text-center">
