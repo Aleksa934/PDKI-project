@@ -1,42 +1,32 @@
-# PDKI project
+# FloraOaza — prototip digitalne prodavnice biljaka
 
-This template should help get you started developing with Vue 3 in Vite.
+Interaktivni Vue prototip omogućava pregled i pretragu kataloga biljaka, rezervisanje proizvoda, upravljanje korpom i profilom kupca. Podaci se simuliraju lokalno; projekat ne zahteva bazu podataka ni spoljašnji API.
 
-## Recommended IDE Setup
+## Pokretanje
 
-[VS Code](https://code.visualstudio.com/) + [Vue (Official)](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur).
-
-## Recommended Browser Setup
-
-- Chromium-based browsers (Chrome, Edge, Brave, etc.):
-  - [Vue.js devtools](https://chromewebstore.google.com/detail/vuejs-devtools/nhdogjmejiglipccpnnnanhbledajbpd)
-  - [Turn on Custom Object Formatter in Chrome DevTools](http://bit.ly/object-formatters)
-- Firefox:
-  - [Vue.js devtools](https://addons.mozilla.org/en-US/firefox/addon/vue-js-devtools/)
-  - [Turn on Custom Object Formatter in Firefox DevTools](https://fxdx.dev/firefox-devtools-custom-object-formatters/)
-
-## Type Support for `.vue` Imports in TS
-
-TypeScript cannot handle type information for `.vue` imports by default, so we replace the `tsc` CLI with `vue-tsc` for type checking. In editors, we need [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) to make the TypeScript language service aware of `.vue` types.
-
-## Customize configuration
-
-See [Vite Configuration Reference](https://vite.dev/config/).
-
-## Project Setup
+Potrebni su Node.js 22.18+ i npm.
 
 ```sh
-bun install
+npm install
+npm run dev
 ```
 
-### Compile and Hot-Reload for Development
+Za proveru tipova i produkcioni build:
 
 ```sh
-bun dev
+npm run build
 ```
 
-### Type-Check, Compile and Minify for Production
+## Funkcije prototipa
 
-```sh
-bun run build
-```
+- Lokalni katalog sa 10 biljaka, opisima, uputstvima za sadnju i negu i demonstracionim recenzijama.
+- Pretraga po nazivu, opisu, sadnji, nezi, tipu i tekstu recenzija, uz filtre za kategoriju, tip, podneblje, sezonu, ciljnu grupu, datum proizvodnje, raspon cene i ocenu.
+- Registracija i prijava kupca; korpa i profil dostupni su samo prijavljenom korisniku.
+- Korpa sa odvojenim podacima po email adresi naloga. Rezervisane stavke mogu da se uređuju i otkažu, pristigle da se ocene i obrišu, a otkazane se isključuju iz ukupne cene.
+- Izmena profila, istorija rezervacija, štampanje potvrde za pristigle stavke i simulirani Flora Bot.
+
+Biljke i početne recenzije u `src/data/plants.ts` su demonstracioni podaci. Rezervacije, nalozi i korisničke ocene čuvaju se lokalno u pregledaču i nisu namenjeni stvarnoj prodaji ili autentifikaciji.
+
+## Dokumentacija za predaju
+
+PDF dokument sa po jednim prikazom stranice i opisom funkcije nalazi se u [docs/Prototip-dokumentacija.pdf](./docs/Prototip-dokumentacija.pdf). HTML izvor dokumenta i slike nalaze se u direktorijumu `docs/`.

@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
 import { plantService } from '@/services/plant.service';
-import type { Plant } from '@/models/plant.model';
+import type { Plant, PlantReview } from '@/models/plant.model';
+import type { User } from '@/models/user.model';
 
 const props = defineProps<{
-  currentUser: any;
+  currentUser: User | null;
+  reviews: PlantReview[];
 }>();
 
 const emit = defineEmits<{
@@ -20,11 +22,17 @@ const selectedPlantForQuickView = ref<Plant | null>(null);
 
 const filters = ref({
   query: '',
+  reviewQuery: '',
   category: '',
+  plantType: '',
+  climate: '',
+  season: '',
   targetGroup: '',
+  minPrice: 0,
   maxPrice: 5000,
   minRating: 0,
-  productionYear: ''
+  fromDate: '',
+  toDate: ''
 });
 
 onMounted(async () => {
@@ -35,23 +43,49 @@ onMounted(async () => {
 
 const filteredPlants = computed(() => {
   const query = filters.value.query.trim().toLowerCase();
+  const reviewQuery = filters.value.reviewQuery.trim().toLowerCase();
 
   return plants.value.filter(p => {
-    const matchQuery = !query ||
-      p.name.toLowerCase().includes(query) ||
-      p.latin_name.toLowerCase().includes(query) ||
-      p.description.toLowerCase().includes(query);
-
+    const reviews = getReviews(p);
+    const searchableText = [
+      p.name, p.latin_name, p.description, p.planting_instructions, p.care_instructions,
+      p.plant_type, p.category, p.climate, p.season, p.target_audience, p.intended_use,
+      ...reviews.map(review => review.comment)
+    ].join(' ').toLowerCase();
+    const matchQuery = !query || searchableText.includes(query);
+    const matchReviewQuery = !reviewQuery || reviews.some(review => review.comment.toLowerCase().includes(reviewQuery));
     const matchCategory = !filters.value.category || p.category === filters.value.category;
+    const matchType = !filters.value.plantType || p.plant_type === filters.value.plantType;
+    const matchClimate = !filters.value.climate || p.climate === filters.value.climate;
+    const matchSeason = !filters.value.season || p.season === filters.value.season;
     const matchGroup = !filters.value.targetGroup || p.target_audience === filters.value.targetGroup;
-    const matchPrice = p.price <= filters.value.maxPrice;
-    // API nema ocenu, pa simuliramo stabilnu ocenu ili podrazumevanu 4.5
-    const matchRating = 4.5 >= filters.value.minRating;
-    const matchYear = !filters.value.productionYear || p.production_date.includes(String(filters.value.productionYear));
+    const matchPrice = p.price >= filters.value.minPrice && p.price <= filters.value.maxPrice;
+    const matchRating = averageRating(p) >= filters.value.minRating;
+    const matchDate = (!filters.value.fromDate || p.production_date >= filters.value.fromDate) &&
+      (!filters.value.toDate || p.production_date <= filters.value.toDate);
 
-    return matchQuery && matchCategory && matchGroup && matchPrice && matchRating && matchYear;
+    return matchQuery && matchReviewQuery && matchCategory && matchType && matchClimate &&
+      matchSeason && matchGroup && matchPrice && matchRating && matchDate;
   });
 });
+
+const uniqueValues = (key: 'plant_type' | 'climate' | 'season' | 'target_audience') =>
+  computed(() => [...new Set(plants.value.map(plant => plant[key]))].sort());
+const plantTypes = uniqueValues('plant_type');
+const climates = uniqueValues('climate');
+const seasons = uniqueValues('season');
+const targetGroups = uniqueValues('target_audience');
+
+const getReviews = (plant: Plant): PlantReview[] => [
+  ...plant.reviews,
+  ...props.reviews.filter(review => review.plantId === plant.id)
+];
+
+const averageRating = (plant: Plant) => {
+  const reviews = getReviews(plant);
+  if (!reviews.length) return 0;
+  return reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length;
+};
 
 const highlightedParts = (text: string) => {
   const query = filters.value.query.trim();
@@ -94,11 +128,17 @@ const openQuickView = (plant: Plant) => {
 const resetFilters = () => {
   filters.value = {
     query: '',
+    reviewQuery: '',
     category: '',
+    plantType: '',
+    climate: '',
+    season: '',
     targetGroup: '',
+    minPrice: 0,
     maxPrice: 5000,
     minRating: 0,
-    productionYear: ''
+    fromDate: '',
+    toDate: ''
   };
 };
 
@@ -118,7 +158,7 @@ const formatDate = (dateStr: string) => {
       <div class="grid grid-cols-1 md:grid-cols-4 gap-3 bg-white p-3 rounded-2xl text-slate-800 shadow-2xl">
         <div class="relative md:col-span-2">
           <i class="fa-solid fa-magnifying-glass absolute left-3 top-3.5 text-slate-400"></i>
-          <input v-model="filters.query" type="text" placeholder="Pretraga po nazivu ili latinskom nazivu..." class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm">
+          <input v-model="filters.query" type="text" placeholder="Naziv, opis, sadnja, nega ili tip..." class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm">
         </div>
         <div>
           <select v-model="filters.category" class="w-full py-2.5 px-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm bg-white">
@@ -144,34 +184,64 @@ const formatDate = (dateStr: string) => {
         <label class="block text-xs font-bold uppercase text-slate-500 mb-1">Ciljna Grupa</label>
         <select v-model="filters.targetGroup" class="w-full p-2.5 rounded-xl border border-slate-200 text-sm">
           <option value="">Sve grupe</option>
-          <option value="Početnici">Početnici</option>
-          <option value="Hobisti">Hobisti</option>
-          <option value="Iskusni uzgajivači">Iskusni uzgajivači</option>
-          <option value="Porodice">Porodice</option>
+          <option v-for="group in targetGroups" :key="group" :value="group">{{ group }}</option>
         </select>
       </div>
       <div>
-        <label class="block text-xs font-bold uppercase text-slate-500 mb-1">Maks. Cena ({{ filters.maxPrice }} RSD)</label>
-        <input type="range" v-model.number="filters.maxPrice" min="300" max="5000" step="100" class="w-full accent-emerald-600 mt-2">
+        <label class="block text-xs font-bold uppercase text-slate-500 mb-1">Tip biljke</label>
+        <select v-model="filters.plantType" class="w-full p-2.5 rounded-xl border border-slate-200 text-sm">
+          <option value="">Svi tipovi</option>
+          <option v-for="type in plantTypes" :key="type" :value="type">{{ type }}</option>
+        </select>
       </div>
       <div>
-        <label class="block text-xs font-bold uppercase text-slate-500 mb-1">Min. Ocena</label>
+        <label class="block text-xs font-bold uppercase text-slate-500 mb-1">Podneblje</label>
+        <select v-model="filters.climate" class="w-full p-2.5 rounded-xl border border-slate-200 text-sm">
+          <option value="">Sva podneblja</option>
+          <option v-for="climate in climates" :key="climate" :value="climate">{{ climate }}</option>
+        </select>
+      </div>
+      <div>
+        <label class="block text-xs font-bold uppercase text-slate-500 mb-1">Sezona</label>
+        <select v-model="filters.season" class="w-full p-2.5 rounded-xl border border-slate-200 text-sm">
+          <option value="">Sve sezone</option>
+          <option v-for="season in seasons" :key="season" :value="season">{{ season }}</option>
+        </select>
+      </div>
+      <div>
+        <label class="block text-xs font-bold uppercase text-slate-500 mb-1">Cena (RSD)</label>
+        <div class="flex gap-2">
+          <input v-model.number="filters.minPrice" type="number" min="0" :max="filters.maxPrice" aria-label="Minimalna cena" placeholder="Od" class="w-1/2 p-2.5 rounded-xl border border-slate-200 text-sm">
+          <input v-model.number="filters.maxPrice" type="number" :min="filters.minPrice" aria-label="Maksimalna cena" placeholder="Do" class="w-1/2 p-2.5 rounded-xl border border-slate-200 text-sm">
+        </div>
+      </div>
+      <div>
+        <label class="block text-xs font-bold uppercase text-slate-500 mb-1">Datum proizvodnje od</label>
+        <input v-model="filters.fromDate" type="date" class="w-full p-2.5 rounded-xl border border-slate-200 text-sm">
+      </div>
+      <div>
+        <label class="block text-xs font-bold uppercase text-slate-500 mb-1">Datum proizvodnje do</label>
+        <input v-model="filters.toDate" type="date" class="w-full p-2.5 rounded-xl border border-slate-200 text-sm">
+      </div>
+      <div>
+        <label class="block text-xs font-bold uppercase text-slate-500 mb-1">Minimalna ocena</label>
         <select v-model.number="filters.minRating" class="w-full p-2.5 rounded-xl border border-slate-200 text-sm">
           <option :value="0">Sve ocene</option>
+          <option :value="3">3+ zvezdice</option>
           <option :value="4">4+ zvezdice</option>
           <option :value="4.5">4.5+ zvezdice</option>
         </select>
       </div>
       <div>
-        <label class="block text-xs font-bold uppercase text-slate-500 mb-1">Godina Proizvodnje</label>
-        <input v-model="filters.productionYear" type="number" placeholder="npr. 2026" class="w-full p-2.5 rounded-xl border border-slate-200 text-sm">
+        <label class="block text-xs font-bold uppercase text-slate-500 mb-1">Reči iz recenzije</label>
+        <input v-model="filters.reviewQuery" type="search" placeholder="npr. lako za negu" class="w-full p-2.5 rounded-xl border border-slate-200 text-sm">
       </div>
     </div>
 
     <!-- Lista Biljaka -->
     <div v-if="loading" class="text-center py-16">
       <i class="fa-solid fa-circle-notch fa-spin text-4xl text-emerald-600 mb-3"></i>
-      <p class="text-slate-500 font-medium">Učitavanje biljaka sa API servera...</p>
+      <p class="text-slate-500 font-medium">Učitavanje kataloga biljaka...</p>
     </div>
 
     <div v-else-if="filteredPlants.length === 0" class="bg-white rounded-2xl p-12 text-center border border-slate-200 shadow-sm">
@@ -188,7 +258,7 @@ const formatDate = (dateStr: string) => {
         <div class="relative h-52 bg-slate-100 overflow-hidden">
           <img :src="plant.image_url" :alt="plant.image_alt" class="w-full h-full object-contain p-4 group-hover:scale-105 transition duration-500">
           <span class="absolute top-3 left-3 bg-slate-900/70 text-white text-xs font-semibold px-3 py-1 rounded-full uppercase">{{ plant.category }}</span>
-          <span class="absolute top-3 right-3 bg-emerald-500 text-white font-extrabold text-xs px-2.5 py-1 rounded-lg">★ 4.8</span>
+          <span class="absolute top-3 right-3 bg-emerald-500 text-white font-extrabold text-xs px-2.5 py-1 rounded-lg">★ {{ averageRating(plant).toFixed(1) }} · {{ getReviews(plant).length }}</span>
         </div>
         <div class="p-5 flex-grow flex flex-col justify-between">
           <div>
@@ -205,6 +275,7 @@ const formatDate = (dateStr: string) => {
             <p class="text-xs text-slate-600 line-clamp-2 mb-4">
               <span v-for="(part, index) in highlightedParts(plant.description)" :key="index" :class="part.matched ? 'bg-emerald-100 text-emerald-800 rounded-sm font-semibold' : ''">{{ part.text }}</span>
             </p>
+            <p class="text-xs text-slate-500 mb-3">{{ getReviews(plant).length }} recenzije · Pročitajte komentare u detaljima</p>
           </div>
           <div>
             <div class="bg-emerald-50 p-2.5 rounded-xl border border-emerald-100 text-xs text-emerald-800 mb-4 flex items-center gap-2">
@@ -252,6 +323,16 @@ const formatDate = (dateStr: string) => {
           <p><strong>Ciljna grupa:</strong> {{ selectedPlantForQuickView.target_audience }}</p>
           <p><strong>Svetlost:</strong> {{ selectedPlantForQuickView.light_requirement }}</p>
           <p><strong>Zalivanje:</strong> {{ selectedPlantForQuickView.watering }}</p>
+          <div class="border-t border-slate-200 dark:border-slate-700 pt-3">
+            <h4 class="font-bold text-sm mb-2">Ocene i recenzije korisnika</h4>
+            <p class="text-emerald-700 dark:text-emerald-400 font-bold mb-2">★ {{ averageRating(selectedPlantForQuickView).toFixed(1) }} / 5 · {{ getReviews(selectedPlantForQuickView).length }} recenzije</p>
+            <ul class="space-y-2">
+              <li v-for="review in getReviews(selectedPlantForQuickView)" :key="review.id" class="rounded-xl bg-slate-50 dark:bg-slate-800 p-3">
+                <p class="font-semibold">{{ review.author }} · <span class="text-amber-500">★ {{ review.rating }} / 5</span></p>
+                <p class="text-slate-600 dark:text-slate-300 mt-1">{{ review.comment }}</p>
+              </li>
+            </ul>
+          </div>
         </div>
 
         <div class="flex items-center justify-between border-t pt-4">

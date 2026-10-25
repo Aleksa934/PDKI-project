@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, reactive, watch } from 'vue';
+import { computed, ref, reactive, watch } from 'vue';
 import type { User } from '@/models/user.model';
 import type { CartItem } from '@/models/plant.model';
 
@@ -12,6 +12,10 @@ const emit = defineEmits<{
   (e: 'save-profile', user: User): void;
   (e: 'go-catalog'): void;
 }>();
+
+const activeReservationCount = computed(() =>
+  props.cart.filter(item => item.status !== 'otkazano').length
+);
 
 // Lokalna forma koja se popunjava podacima trenutnog korisnika
 const form = reactive<User>({
@@ -36,7 +40,7 @@ watch(() => props.currentUser, (newUser) => {
 }, { immediate: true });
 
 const handleSave = () => {
-  emit('save-profile', { ...form });
+  emit('save-profile', { ...form, email: form.email.trim().toLowerCase() });
 };
 </script>
 
@@ -78,7 +82,7 @@ const handleSave = () => {
           <h4 class="font-bold text-sm tracking-wide text-emerald-200 uppercase">Statistika Naloga</h4>
           <div class="flex justify-between items-center text-sm border-b border-emerald-700/50 pb-2">
             <span>Rezervisane biljke:</span>
-            <span class="font-bold text-amber-300">{{ cart.length }}</span>
+            <span class="font-bold text-amber-300">{{ activeReservationCount }}</span>
           </div>
           <div class="flex justify-between items-center text-sm">
             <span>Status profila:</span>

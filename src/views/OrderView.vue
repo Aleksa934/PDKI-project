@@ -8,7 +8,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   (e: 'remove', cartId: number): void;
-  (e: 'toggle-status', item: CartItem): void;
+  (e: 'set-status', cartId: number, status: CartItem['status']): void;
   (e: 'save-rating', item: CartItem): void;
   (e: 'confirm'): void;
   (e: 'go-catalog'): void;
@@ -16,9 +16,13 @@ const emit = defineEmits<{
 
 // Ispravljeno na item.price (jer API vraća price, ne cena)
 const cartTotal = computed(() => {
-  return props.cart.reduce((sum, item) => sum + (item.price * item.kolicina), 0);
+  return props.cart
+    .filter(item => item.status !== 'otkazano')
+    .reduce((sum, item) => sum + (item.price * item.kolicina), 0);
 });
 
+const activeItems = computed(() => props.cart.filter(item => item.status !== 'otkazano'));
+const reservedItems = computed(() => props.cart.filter(item => item.status === 'rezervisano'));
 const arrivedItems = computed(() => props.cart.filter(item => item.status === 'pristiglo'));
 const arrivedTotal = computed(() => {
   return arrivedItems.value.reduce((sum, item) => sum + (item.price * item.kolicina), 0);
@@ -85,7 +89,15 @@ const formatDate = (dateStr: string) => {
               </div>
               
               <!-- Ispravljeno item.type i item.category (ili šta već imaš u modelu) -->
-              <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Tip: {{ item.plant_type }} | Proizvodnja: {{ formatDate(item.production_date) }}</p>
+              <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                {{ item.plant_type }} · {{ item.category }} · {{ item.climate }} · {{ item.season }} ·
+                {{ item.target_audience }} · Proizvodnja: {{ formatDate(item.production_date) }}
+              </p>
+              <div class="mt-3 space-y-1 text-xs text-slate-600 dark:text-slate-300">
+                <p><strong>Opis:</strong> {{ item.description }}</p>
+                <p><strong>Sadnja:</strong> {{ item.planting_instructions }}</p>
+                <p><strong>Nega:</strong> {{ item.care_instructions }}</p>
+              </div>
 
               <div v-if="item.status === 'rezervisano'" class="mt-3 bg-slate-50 dark:bg-slate-800/60 p-3 rounded-xl border border-slate-200 dark:border-slate-700 text-xs">
                 <label class="block font-semibold text-slate-600 dark:text-slate-300 mb-1">Napomena za dostavu / Količina:</label>
@@ -99,18 +111,30 @@ const formatDate = (dateStr: string) => {
               </div>
 
               <div v-if="item.status === 'pristiglo'" class="print-hidden mt-3 bg-emerald-50 dark:bg-emerald-950/30 p-3 rounded-xl border border-emerald-200 dark:border-emerald-900/50 text-xs">
-                <p class="font-bold text-emerald-900 dark:text-emerald-300 mb-1"><i class="fa-solid fa-star text-amber-500"></i> Ocenite pristiglu biljku:</p>
-                <div class="flex items-center gap-2 mb-2">
-                  <div class="flex text-amber-400 text-base cursor-pointer">
-                    <i v-for="star in 5" :key="star" @click="item.mojaOcena = star" :class="star <= item.mojaOcena ? 'fa-solid fa-star' : 'fa-regular fa-star'"></i>
+                <template v-if="item.ocenaSacuvana">
+                  <p class="font-bold text-emerald-900 dark:text-emerald-300">Hvala na oceni: {{ item.mojaOcena }} / 5</p>
+                  <p v-if="item.mojaRecenzija" class="mt-1 text-slate-600 dark:text-slate-300">{{ item.mojaRecenzija }}</p>
+                </template>
+                <template v-else>
+                  <p class="font-bold text-emerald-900 dark:text-emerald-300 mb-1"><i class="fa-solid fa-star text-amber-500"></i> Ocenite pristiglu biljku:</p>
+                  <div class="flex items-center gap-2 mb-2">
+                    <div class="flex text-amber-400 text-base">
+                      <button v-for="star in 5" :key="star" type="button" :aria-label="`Oceni sa ${star} od 5`" :aria-pressed="item.mojaOcena === star" @click="item.mojaOcena = star" class="p-0.5">
+                        <i :class="star <= (item.mojaOcena ?? 0) ? 'fa-solid fa-star' : 'fa-regular fa-star'"></i>
+                      </button>
+                    </div>
+                    <span class="font-bold text-slate-700 dark:text-slate-300">({{ item.mojaOcena ?? 0 }} / 5)</span>
                   </div>
-                  <span class="font-bold text-slate-700 dark:text-slate-300">({{ item.mojaOcena }} / 5)</span>
-                </div>
-                <input v-model="item.mojaRecenzija" type="text" placeholder="Napišite vaše utiske..." class="w-full p-2 border border-emerald-300 dark:border-emerald-800 rounded-lg text-xs bg-white dark:bg-slate-900 dark:text-white">
-                <button @click="emit('save-rating', item)" class="mt-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-3 py-1.5 rounded-lg text-xs transition">
-                  Sačuvaj Ocenu
-                </button>
+                  <input v-model="item.mojaRecenzija" type="text" placeholder="Napišite vaše utiske..." class="w-full p-2 border border-emerald-300 dark:border-emerald-800 rounded-lg text-xs bg-white dark:bg-slate-900 dark:text-white">
+                  <button @click="emit('save-rating', item)" :disabled="item.mojaOcena === null" class="mt-2 bg-emerald-600 hover:bg-emerald-500 disabled:bg-slate-400 disabled:cursor-not-allowed text-white font-bold px-3 py-1.5 rounded-lg text-xs transition">
+                    Sačuvaj ocenu i recenziju
+                  </button>
+                </template>
               </div>
+
+              <p v-if="item.status === 'otkazano'" class="mt-3 text-xs text-rose-700 dark:text-rose-300">
+                Rezervacija je otkazana i nije uključena u ukupnu cenu.
+              </p>
             </div>
 
             <div class="flex items-center justify-between border-t border-slate-100 dark:border-slate-800 pt-3 mt-3">
@@ -119,8 +143,11 @@ const formatDate = (dateStr: string) => {
                 {{ (item.price * item.kolicina).toLocaleString('sr-RS') }} RSD
               </div>
               <div class="print-hidden flex items-center gap-3">
-                <button @click="emit('toggle-status', item)" class="text-xs text-slate-500 dark:text-slate-400 underline hover:text-slate-800 dark:hover:text-slate-200">Simuliraj Status</button>
-                <button @click="emit('remove', item.cartId)" class="bg-rose-100 hover:bg-rose-200 dark:bg-rose-950/50 dark:hover:bg-rose-900 text-rose-700 dark:text-rose-300 font-bold px-3 py-1.5 rounded-xl text-xs transition flex items-center gap-1">
+                <template v-if="item.status === 'rezervisano'">
+                  <button @click="emit('set-status', item.cartId, 'pristiglo')" class="text-xs text-emerald-700 dark:text-emerald-400 underline hover:text-emerald-800">Simuliraj pristizanje</button>
+                  <button @click="emit('set-status', item.cartId, 'otkazano')" class="text-xs text-rose-700 dark:text-rose-400 underline hover:text-rose-800">Otkaži rezervaciju</button>
+                </template>
+                <button v-if="item.status === 'pristiglo'" @click="emit('remove', item.cartId)" class="bg-rose-100 hover:bg-rose-200 dark:bg-rose-950/50 dark:hover:bg-rose-900 text-rose-700 dark:text-rose-300 font-bold px-3 py-1.5 rounded-xl text-xs transition flex items-center gap-1">
                   <i class="fa-solid fa-trash-can"></i> Obriši
                 </button>
               </div>
@@ -135,7 +162,7 @@ const formatDate = (dateStr: string) => {
         <div class="space-y-2 text-sm text-slate-600 dark:text-slate-300">
           <div class="flex justify-between">
             <span>Broj stavki:</span>
-            <span class="font-bold text-slate-800 dark:text-white">{{ cart.length }}</span>
+            <span class="font-bold text-slate-800 dark:text-white">{{ activeItems.length }}</span>
           </div>
           <div class="flex justify-between">
             <span>Isporuka:</span>
@@ -149,7 +176,7 @@ const formatDate = (dateStr: string) => {
         <button v-if="arrivedItems.length > 0" @click="printReceipt" class="w-full border border-emerald-600 text-emerald-700 dark:text-emerald-400 font-bold py-3 rounded-2xl hover:bg-emerald-50 dark:hover:bg-emerald-950/40 transition flex items-center justify-center gap-2 text-sm">
           <i class="fa-solid fa-file-arrow-down"></i> Preuzmi potvrdu (PDF / Štampa)
         </button>
-        <button @click="emit('confirm')" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-2xl shadow-lg transition flex items-center justify-center gap-2 text-sm">
+        <button @click="emit('confirm')" :disabled="reservedItems.length === 0" class="w-full bg-emerald-600 hover:bg-emerald-500 disabled:bg-slate-400 disabled:cursor-not-allowed text-white font-bold py-3 rounded-2xl shadow-lg transition flex items-center justify-center gap-2 text-sm">
           <i class="fa-solid fa-paper-plane"></i> Potvrdi Rezervaciju
         </button>
       </div>

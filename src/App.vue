@@ -1,15 +1,38 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted, reactive, ref, watch } from 'vue';
+import { computed, onMounted, onUnmounted, reactive, ref, watch } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import type { Plant, CartItem } from '@/models/plant.model';
+import type { PlantReview } from '@/models/plant.model';
 import type { User } from '@/models/user.model';
 import FloraChatbot from './components/FloraChatbot.vue';
+import { updateAccountProfile } from '@/services/auth.service';
 
 const router = useRouter();
 const route = useRoute();
 
-const cart = ref<CartItem[]>(JSON.parse(localStorage.getItem('flora_cart') || '[]'));
 const currentUser = ref<User | null>(JSON.parse(localStorage.getItem('flora_user') || 'null'));
+const cartKey = (email: string) => `flora_cart_${encodeURIComponent(email.trim().toLowerCase())}`;
+const normalizeCart = (items: CartItem[]) => items.map(item =>
+  item.ocenaSacuvana === undefined
+    ? { ...item, mojaOcena: null, mojaRecenzija: '', ocenaSacuvana: false }
+    : item
+);
+const loadCart = (email: string): CartItem[] => {
+  const storedCart = localStorage.getItem(cartKey(email));
+  if (storedCart) return normalizeCart(JSON.parse(storedCart) as CartItem[]);
+
+  const legacyCart = localStorage.getItem('flora_cart');
+  if (legacyCart) {
+    const parsedCart = normalizeCart(JSON.parse(legacyCart) as CartItem[]);
+    localStorage.setItem(cartKey(email), JSON.stringify(parsedCart));
+    localStorage.removeItem('flora_cart');
+    return parsedCart;
+  }
+  return [];
+};
+const cart = ref<CartItem[]>(currentUser.value ? loadCart(currentUser.value.email) : []);
+const userReviews = ref<PlantReview[]>(JSON.parse(localStorage.getItem('flora_reviews') || '[]'));
+const activeCartCount = computed(() => cart.value.filter(item => item.status !== 'otkazano').length);
 const notification = reactive<{ message: string; type: 'success' | 'error' | 'info' }>({
   message: '',
   type: 'success'
@@ -31,15 +54,27 @@ const applyTheme = (dark: boolean) => {
 applyTheme(isDark.value);
 
 watch(cart, (newCart) => {
-  localStorage.setItem('flora_cart', JSON.stringify(newCart));
+  if (currentUser.value) {
+    localStorage.setItem(cartKey(currentUser.value.email), JSON.stringify(newCart));
+  }
 }, { deep: true });
 
-watch(currentUser, (newUser) => {
+watch(currentUser, (newUser, oldUser) => {
+  if (oldUser) {
+    localStorage.setItem(cartKey(oldUser.email), JSON.stringify(cart.value));
+  }
   if (newUser) {
     localStorage.setItem('flora_user', JSON.stringify(newUser));
   } else {
     localStorage.removeItem('flora_user');
   }
+  if (newUser?.email.toLowerCase() !== oldUser?.email.toLowerCase()) {
+    cart.value = newUser ? loadCart(newUser.email) : [];
+  }
+}, { deep: true });
+
+watch(userReviews, (reviews) => {
+  localStorage.setItem('flora_reviews', JSON.stringify(reviews));
 }, { deep: true });
 
 const syncCurrentUser = () => {
@@ -100,16 +135,68 @@ const handleReserve = (plant: Plant) => {
       status: 'rezervisano',
       kolicina: 1,
       napomena: '',
-      mojaOcena: 5,
-      mojaRecenzija: ''
+      mojaOcena: null,
+      mojaRecenzija: '',
+      ocenaSacuvana: false
     });
   }
   showToast(`Uspešno rezervisano: ${plant.name}!`);
 };
 
 const removeCartItem = (id: number) => {
+  const item = cart.value.find(cartItem => cartItem.cartId === id);
+  if (item?.status !== 'pristiglo') {
+    showToast('Iz korpe možete obrisati samo pristigle biljke.', 'error');
+    return;
+  }
   cart.value = cart.value.filter(item => item.cartId !== id);
   showToast('Rezervacija je uklonjena iz korpe.', 'error');
+};
+
+const updateCartStatus = (id: number, status: CartItem['status']) => {
+  const item = cart.value.find(cartItem => cartItem.cartId === id);
+  if (!item || item.status !== 'rezervisano') return;
+  item.status = status;
+  showToast(status === 'pristiglo' ? 'Biljka je označena kao pristigla.' : 'Rezervacija je otkazana.', status === 'pristiglo' ? 'success' : 'info');
+};
+
+const confirmReservations = () => {
+  const reservedItems = cart.value.filter(item => item.status === 'rezervisano');
+  if (!reservedItems.length) {
+    showToast('Nema rezervisanih biljaka za potvrdu.', 'info');
+    return;
+  }
+  reservedItems.forEach(item => item.status = 'pristiglo');
+  showToast('Rezervacije su potvrđene i označene kao pristigle!');
+};
+
+const saveRating = (item: CartItem) => {
+  if (item.status !== 'pristiglo' || item.mojaOcena === null || item.ocenaSacuvana) {
+    showToast('Ocenjivanje je dostupno za pristigle biljke sa izabranom ocenom.', 'error');
+    return;
+  }
+  userReviews.value.push({
+    id: Date.now(),
+    plantId: item.id,
+    author: currentUser.value ? `${currentUser.value.ime} ${currentUser.value.prezime}`.trim() : 'Kupac',
+    rating: item.mojaOcena,
+    comment: item.mojaRecenzija?.trim() || 'Kupac je ocenio biljku.'
+  });
+  item.ocenaSacuvana = true;
+  showToast('Ocena i recenzija su sačuvane!');
+};
+
+const saveProfile = (user: User) => {
+  const previousEmail = currentUser.value?.email;
+  if (!previousEmail || !updateAccountProfile(previousEmail, user)) {
+    showToast('Profil nije sačuvan. Proverite email adresu i pokušajte ponovo.', 'error');
+    return;
+  }
+  if (previousEmail.trim().toLowerCase() !== user.email.trim().toLowerCase()) {
+    localStorage.setItem(cartKey(user.email), JSON.stringify(cart.value));
+  }
+  currentUser.value = user;
+  showToast('Profil uspešno sačuvan!');
 };
 
 // Odjava sa potvrdom
@@ -141,7 +228,7 @@ const logout = () => {
           </button>
           <button @click="goTo('/cart')" :class="route.path === '/cart' ? 'bg-emerald-700 dark:bg-emerald-900 font-semibold' : 'hover:bg-emerald-700/60'" class="px-4 py-2 rounded-xl transition text-sm flex items-center gap-2 relative">
             <i class="fa-solid fa-basket-shopping"></i> Korpa Rezervacija
-            <span v-if="cart.length > 0" class="bg-amber-400 text-slate-900 text-xs font-bold px-2 py-0.5 rounded-full animate-bounce">{{ cart.length }}</span>
+            <span v-if="activeCartCount > 0" class="bg-amber-400 text-slate-900 text-xs font-bold px-2 py-0.5 rounded-full animate-bounce">{{ activeCartCount }}</span>
           </button>
           <button @click="goTo('/profile')" :class="route.path === '/profile' ? 'bg-emerald-700 dark:bg-emerald-900 font-semibold' : 'hover:bg-emerald-700/60'" class="px-4 py-2 rounded-xl transition text-sm flex items-center gap-2">
             <i class="fa-solid fa-user-gear"></i> Moj Profil
@@ -173,14 +260,15 @@ const logout = () => {
       <router-view 
         :current-user="currentUser" 
         :cart="cart"
+        :reviews="route.name === 'home' ? userReviews : undefined"
         @reserve="handleReserve"
         @remove="removeCartItem"
-        @toggle-status="(item: CartItem) => item.status = item.status === 'rezervisano' ? 'pristiglo' : 'rezervisano'"
-        @save-rating="(item: CartItem) => showToast('Ocena uspešno sačuvana!')"
-        @confirm="() => { cart.forEach(i => i.status = 'pristiglo'); showToast('Rezervacija uspešno potvrđena!'); }"
+        @set-status="(id: number, status: CartItem['status']) => updateCartStatus(id, status)"
+        @save-rating="saveRating"
+        @confirm="confirmReservations"
         @go-catalog="router.push('/')"
         @require-auth="router.push('/login')"
-        @save-profile="(u: User) => { currentUser = u; showToast('Profil uspešno sačuvan!'); }"
+        @save-profile="saveProfile"
       />
     </main>
 

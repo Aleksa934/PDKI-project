@@ -23,6 +23,15 @@ export interface Plant {
   climate: string;
   season_id: number;
   season: string;
+  reviews: PlantReview[];
+}
+
+export interface PlantReview {
+  id: number;
+  plantId: number;
+  author: string;
+  rating: number;
+  comment: string;
 }
 
 export interface CartItem extends Plant {
@@ -30,6 +39,7 @@ export interface CartItem extends Plant {
   status: 'rezervisano' | 'pristiglo' | 'otkazano';
   kolicina: number;
   napomena?: string;
-  mojaOcena: number;
+  mojaOcena: number | null;
   mojaRecenzija?: string;
+  ocenaSacuvana?: boolean;
 }

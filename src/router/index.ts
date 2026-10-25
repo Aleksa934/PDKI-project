@@ -17,12 +17,14 @@ const router = createRouter({
     {
       path: '/cart',
       name: 'cart',
-      component: CartView      
+      component: CartView,
+      meta: { requiresAuth: true }
     },
     {
       path: '/profile',
       name: 'profile',
-      component: ProfileView
+      component: ProfileView,
+      meta: { requiresAuth: true }
     },
     {
      path: '/login',
@@ -41,5 +43,11 @@ const router = createRouter({
     }
   ]
 })
+
+router.beforeEach((to) => {
+  if (to.meta.requiresAuth && !localStorage.getItem('flora_user')) {
+    return { name: 'login', query: { redirect: to.fullPath } };
+  }
+});
 
 export default router

@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { ref } from 'vue';
-import { useRouter } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import { authenticateAccount } from '@/services/auth.service';
 
 const router = useRouter();
+const route = useRoute();
 const email = ref('');
 const lozinka = ref('');
 const errorMessage = ref('');
@@ -19,7 +20,11 @@ const handleLogin = async () => {
 
   localStorage.setItem('flora_user', JSON.stringify(user));
   window.dispatchEvent(new Event('flora-user-updated'));
-  router.push('/profile');
+  const requestedRedirect = typeof route.query.redirect === 'string' ? route.query.redirect : '';
+  const redirect = requestedRedirect.startsWith('/') && !requestedRedirect.startsWith('//')
+    ? requestedRedirect
+    : '/profile';
+  router.push(redirect);
 };
 </script>
 

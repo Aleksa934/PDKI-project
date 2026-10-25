@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import { computed, reactive, ref } from 'vue';
-import { useRouter } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import type { User } from '@/models/user.model';
 import { registerAccount } from '@/services/auth.service';
 
 const router = useRouter();
+const route = useRoute();
 const errorMessage = ref('');
 const form = reactive({
   ime: '',
@@ -51,7 +52,11 @@ const handleRegister = async () => {
 
   localStorage.setItem('flora_user', JSON.stringify(newUser));
   window.dispatchEvent(new Event('flora-user-updated'));
-  router.push('/profile');
+  const requestedRedirect = typeof route.query.redirect === 'string' ? route.query.redirect : '';
+  const redirect = requestedRedirect.startsWith('/') && !requestedRedirect.startsWith('//')
+    ? requestedRedirect
+    : '/profile';
+  router.push(redirect);
 };
 </script>
 

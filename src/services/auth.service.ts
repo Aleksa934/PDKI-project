@@ -68,3 +68,21 @@ export const authenticateAccount = async (
   const passwordHash = await hashPassword(password, decodeSalt(account.salt));
   return passwordHash === account.passwordHash ? account.user : null;
 };
+
+export const updateAccountProfile = (currentEmail: string, user: User): boolean => {
+  const accounts = getAccounts();
+  const currentAccount = accounts.find(
+    account => account.user.email.toLowerCase() === currentEmail.trim().toLowerCase()
+  );
+  const email = user.email.trim().toLowerCase();
+
+  if (!currentAccount || accounts.some(
+    account => account !== currentAccount && account.user.email.toLowerCase() === email
+  )) {
+    return false;
+  }
+
+  currentAccount.user = { ...user, email };
+  localStorage.setItem(ACCOUNTS_KEY, JSON.stringify(accounts));
+  return true;
+};
