@@ -1,16 +1,20 @@
 <script setup lang="ts">
-import { reactive, watch } from 'vue';
+import { ref, reactive, watch } from 'vue';
 import type { User } from '@/models/user.model';
+import type { CartItem } from '@/models/plant.model';
 
 const props = defineProps<{
   currentUser: User | null;
+  cart: CartItem[];
 }>();
 
 const emit = defineEmits<{
   (e: 'save-profile', user: User): void;
+  (e: 'go-catalog'): void;
 }>();
 
-const profileForm = reactive<User>({
+// Lokalna forma koja se popunjava podacima trenutnog korisnika
+const form = reactive<User>({
   ime: props.currentUser?.ime || '',
   prezime: props.currentUser?.prezime || '',
   email: props.currentUser?.email || '',
@@ -19,63 +23,112 @@ const profileForm = reactive<User>({
   omiljeneBiljke: props.currentUser?.omiljeneBiljke || ''
 });
 
-watch(() => props.currentUser, (newVal) => {
-  if (newVal) {
-    Object.assign(profileForm, newVal);
+// Sinhronizacija ako se korisnik promeni spolja
+watch(() => props.currentUser, (newUser) => {
+  if (newUser) {
+    form.ime = newUser.ime;
+    form.prezime = newUser.prezime;
+    form.email = newUser.email;
+    form.telefon = newUser.telefon;
+    form.adresa = newUser.adresa;
+    form.omiljeneBiljke = newUser.omiljeneBiljke;
   }
-}, { deep: true });
+}, { immediate: true });
 
-const onSubmit = () => {
-  emit('save-profile', { ...profileForm });
+const handleSave = () => {
+  emit('save-profile', { ...form });
 };
 </script>
 
 <template>
-  <div class="max-w-3xl mx-auto bg-white p-8 rounded-3xl border border-slate-200 shadow-lg">
-    <div class="flex items-center gap-4 border-b border-slate-100 pb-6 mb-6">
-      <div class="w-16 h-16 rounded-2xl bg-emerald-600 text-white flex items-center justify-center text-2xl font-black shadow-md">
-        {{ currentUser ? currentUser.ime.charAt(0) + currentUser.prezime.charAt(0) : 'G' }}
-      </div>
+  <div class="space-y-6 max-w-5xl mx-auto">
+    <!-- Header -->
+    <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-4">
       <div>
-        <h2 class="text-2xl font-bold text-slate-900">{{ currentUser ? currentUser.ime + ' ' + currentUser.prezime : 'Gost Korisnik' }}</h2>
-        <p class="text-sm text-slate-500">Lični profil kupca i opcije za ažuriranje podataka</p>
+        <h2 class="text-2xl font-bold text-slate-900 dark:text-white">Moj Profil i Podešavanja</h2>
+        <p class="text-sm text-slate-500 dark:text-slate-400">Upravljajte vašim ličnim podacima, adresom za dostavu i preferencama.</p>
       </div>
+      <button @click="emit('go-catalog')" class="text-xs bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 px-3 py-2 rounded-xl font-semibold text-slate-700 dark:text-slate-200 transition">
+        <i class="fa-solid fa-arrow-left"></i> Nazad na katalog
+      </button>
     </div>
 
-    <form @submit.prevent="onSubmit" class="space-y-5">
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div>
-          <label class="block text-xs font-bold uppercase text-slate-500 mb-1">Ime</label>
-          <input v-model="profileForm.ime" type="text" required class="w-full p-3 rounded-xl border border-slate-200 text-sm">
+    <div v-if="!currentUser" class="bg-white dark:bg-slate-900 rounded-3xl p-12 text-center border border-slate-200 dark:border-slate-800 shadow-sm">
+      <i class="fa-solid fa-user-lock text-5xl text-slate-300 dark:text-slate-600 mb-4"></i>
+      <h3 class="text-xl font-bold text-slate-800 dark:text-white mb-2">Niste prijavljeni</h3>
+      <p class="text-slate-500 dark:text-slate-400 text-sm mb-6">Molimo vas da se prijavite da biste videli podatke profila.</p>
+    </div>
+
+    <div v-else class="grid grid-cols-1 md:grid-cols-3 gap-8">
+      <!-- Leva kolona: Info kartica i Statistika -->
+      <div class="space-y-6">
+        <div class="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm text-center">
+          <div class="w-20 h-20 bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-400 rounded-full flex items-center justify-center text-3xl font-bold mx-auto mb-4">
+            {{ currentUser.ime ? currentUser.ime.charAt(0).toUpperCase() : 'K' }}
+          </div>
+          <h3 class="text-lg font-bold text-slate-900 dark:text-white">{{ currentUser.ime }} {{ currentUser.prezime || '' }}</h3>
+          <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">{{ currentUser.email }}</p>
+          <div class="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800 text-left text-xs space-y-2 text-slate-600 dark:text-slate-300">
+            <p><strong class="text-slate-900 dark:text-white">Telefon:</strong> {{ currentUser.telefon || 'Nije uneto' }}</p>
+            <p><strong class="text-slate-900 dark:text-white">Adresa:</strong> {{ currentUser.adresa || 'Nije uneto' }}</p>
+          </div>
         </div>
-        <div>
-          <label class="block text-xs font-bold uppercase text-slate-500 mb-1">Prezime</label>
-          <input v-model="profileForm.prezime" type="text" required class="w-full p-3 rounded-xl border border-slate-200 text-sm">
+
+        <div class="bg-emerald-800 dark:bg-emerald-950 text-white p-6 rounded-3xl shadow-sm space-y-3">
+          <h4 class="font-bold text-sm tracking-wide text-emerald-200 uppercase">Statistika Naloga</h4>
+          <div class="flex justify-between items-center text-sm border-b border-emerald-700/50 pb-2">
+            <span>Rezervisane biljke:</span>
+            <span class="font-bold text-amber-300">{{ cart.length }}</span>
+          </div>
+          <div class="flex justify-between items-center text-sm">
+            <span>Status profila:</span>
+            <span class="font-bold bg-emerald-500/30 px-2.5 py-0.5 rounded-full text-xs">Aktivan</span>
+          </div>
         </div>
       </div>
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div>
-          <label class="block text-xs font-bold uppercase text-slate-500 mb-1">Email Adresa</label>
-          <input v-model="profileForm.email" type="email" required class="w-full p-3 rounded-xl border border-slate-200 text-sm">
-        </div>
-        <div>
-          <label class="block text-xs font-bold uppercase text-slate-500 mb-1">Broj Telefona</label>
-          <input v-model="profileForm.telefon" type="text" required class="w-full p-3 rounded-xl border border-slate-200 text-sm">
-        </div>
+
+      <!-- Desna kolona: Forma za izmenu podataka -->
+      <div class="md:col-span-2 bg-white dark:bg-slate-900 p-8 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm">
+        <h3 class="text-lg font-bold text-slate-900 dark:text-white mb-6">Izmena Ličnih Podataka</h3>
+        
+        <form @submit.prevent="handleSave" class="space-y-4">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-bold uppercase text-slate-500 dark:text-slate-400 mb-1">Ime</label>
+              <input v-model="form.ime" type="text" required class="w-full p-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-transparent text-sm dark:text-white">
+            </div>
+            <div>
+              <label class="block text-xs font-bold uppercase text-slate-500 dark:text-slate-400 mb-1">Prezime</label>
+              <input v-model="form.prezime" type="text" class="w-full p-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-transparent text-sm dark:text-white">
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-bold uppercase text-slate-500 dark:text-slate-400 mb-1">Email adresa</label>
+              <input v-model="form.email" type="email" required class="w-full p-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-transparent text-sm dark:text-white">
+            </div>
+            <div>
+              <label class="block text-xs font-bold uppercase text-slate-500 dark:text-slate-400 mb-1">Kontakt telefon</label>
+              <input v-model="form.telefon" type="text" class="w-full p-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-transparent text-sm dark:text-white">
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold uppercase text-slate-500 dark:text-slate-400 mb-1">Adresa za dostavu</label>
+            <input v-model="form.adresa" type="text" class="w-full p-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-transparent text-sm dark:text-white">
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold uppercase text-slate-500 dark:text-slate-400 mb-1">Omiljene vrste biljaka / Napomena</label>
+            <input v-model="form.omiljeneBiljke" type="text" placeholder="npr. Sobne biljke, kaktusi..." class="w-full p-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-transparent text-sm dark:text-white">
+          </div>
+
+          <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3.5 rounded-xl text-sm transition shadow-md">
+            Sačuvaj Izmene
+          </button>
+        </form>
       </div>
-      <div>
-        <label class="block text-xs font-bold uppercase text-slate-500 mb-1">Adresa za dostavu</label>
-        <input v-model="profileForm.adresa" type="text" required class="w-full p-3 rounded-xl border border-slate-200 text-sm">
-      </div>
-      <div>
-        <label class="block text-xs font-bold uppercase text-slate-500 mb-1">Omiljene vrste biljaka</label>
-        <input v-model="profileForm.omiljeneBiljke" type="text" placeholder="npr. Sukulenti, Orhideje" class="w-full p-3 rounded-xl border border-slate-200 text-sm">
-      </div>
-      <div class="pt-4 flex justify-end">
-        <button type="submit" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-6 py-3 rounded-xl shadow-md transition text-sm flex items-center gap-2">
-          <i class="fa-solid fa-floppy-disk"></i> Sačuvaj Izmene Profila
-        </button>
-      </div>
-    </form>
+    </div>
   </div>
 </template>
