@@ -26,7 +26,7 @@ const handleRegister = () => {
   };
 
   localStorage.setItem('flora_user', JSON.stringify(newUser));
-  window.dispatchEvent(new Event('storage'));
+  window.dispatchEvent(new Event('flora-user-updated'));
   router.push('/profile');
 };
 </script>

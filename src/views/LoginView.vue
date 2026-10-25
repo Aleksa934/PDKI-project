@@ -30,7 +30,7 @@ const handleLogin = () => {
   }
 
   localStorage.setItem('flora_user', JSON.stringify(user));
-  window.dispatchEvent(new Event('storage')); // Osvežava stanje u App.vue
+  window.dispatchEvent(new Event('flora-user-updated'));
   router.push('/profile');
 };
 </script>

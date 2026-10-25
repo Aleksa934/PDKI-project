@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue';
+import { onMounted, onUnmounted, ref, watch } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import type { Plant, CartItem } from '@/models/plant.model';
 import type { User } from '@/models/user.model';
@@ -37,6 +37,14 @@ watch(currentUser, (newUser) => {
     localStorage.removeItem('flora_user');
   }
 }, { deep: true });
+
+const syncCurrentUser = () => {
+  const storedUser = localStorage.getItem('flora_user');
+  currentUser.value = storedUser ? JSON.parse(storedUser) as User : null;
+};
+
+onMounted(() => window.addEventListener('flora-user-updated', syncCurrentUser));
+onUnmounted(() => window.removeEventListener('flora-user-updated', syncCurrentUser));
 
 watch(isDark, (val) => {
   localStorage.setItem('flora_dark', JSON.stringify(val));
