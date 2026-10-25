@@ -318,7 +318,8 @@ const formatDate = (dateStr: string) => {
     </div>
 
     <!-- Quick View Modal -->
-    <div v-if="selectedPlantForQuickView" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4" @click.self="selectedPlantForQuickView = null">
+    <Teleport to="body">
+      <div v-if="selectedPlantForQuickView" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4" @click.self="selectedPlantForQuickView = null">
       <div class="bg-white dark:bg-slate-900 dark:text-white rounded-3xl max-w-2xl w-full p-6 sm:p-8 shadow-2xl relative max-h-[90vh] overflow-y-auto border border-slate-200 dark:border-slate-800">
         <button @click="selectedPlantForQuickView = null" aria-label="Zatvori brzi pregled" class="absolute top-4 right-4 text-slate-400 hover:text-slate-700 dark:hover:text-white text-2xl font-bold">&times;</button>
         <div class="flex items-center gap-3 mb-2">
@@ -365,6 +366,7 @@ const formatDate = (dateStr: string) => {
           </button>
         </div>
       </div>
-    </div>
+      </div>
+    </Teleport>
   </div>
 </template>

@@ -82,10 +82,6 @@ html.dark header.sticky {
   background-image: linear-gradient(110deg, rgb(2 44 34 / 98%), rgb(6 78 59 / 96%));
 }
 
-main {
-  animation: page-enter 380ms ease both;
-}
-
 .bg-gradient-to-r {
   background-size: 150% 150%;
 }
@@ -132,18 +128,6 @@ footer {
 
 html.dark footer {
   background-image: linear-gradient(110deg, #020617, #071827);
-}
-
-@keyframes page-enter {
-  from {
-    opacity: 0;
-    transform: translateY(6px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {
