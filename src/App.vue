@@ -11,8 +11,19 @@ const cart = ref<CartItem[]>(JSON.parse(localStorage.getItem('flora_cart') || '[
 const currentUser = ref<User | null>(JSON.parse(localStorage.getItem('flora_user') || 'null'));
 const notificationMessage = ref('');
 
-// Dark mode state
+// Dark mode state sa automatskim dodavanjem/uklanjanjem klase sa html elementa
 const isDark = ref<boolean>(JSON.parse(localStorage.getItem('flora_dark') || 'false'));
+
+const applyTheme = (dark: boolean) => {
+  if (dark) {
+    document.documentElement.classList.add('dark');
+  } else {
+    document.documentElement.classList.remove('dark');
+  }
+};
+
+// Primeni temu odmah pri pokretanju aplikacije
+applyTheme(isDark.value);
 
 watch(cart, (newCart) => {
   localStorage.setItem('flora_cart', JSON.stringify(newCart));
@@ -28,6 +39,7 @@ watch(currentUser, (newUser) => {
 
 watch(isDark, (val) => {
   localStorage.setItem('flora_dark', JSON.stringify(val));
+  applyTheme(val);
 });
 
 const toggleDark = () => {
@@ -117,7 +129,7 @@ const logout = () => {
 </script>
 
 <template>
-  <div :class="{ 'dark': isDark }" class="min-h-screen flex flex-col justify-between bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 transition-colors duration-300 relative">
+  <div class="min-h-screen flex flex-col justify-between bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 transition-colors duration-300 relative">
     <!-- Header -->
     <header class="bg-emerald-800 dark:bg-emerald-950 text-white shadow-lg sticky top-0 z-40 border-b border-emerald-700/40 dark:border-emerald-900">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">

@@ -1,6 +1,7 @@
-@import 'tailwindcss/base';
-@import 'tailwindcss/components';
-@import 'tailwindcss/utilities';
+@import "tailwindcss";
+
+/* Eksplicitno govorimo Tailwind-u v4 da prepoznaje .dark klasu */
+@variant dark (&:where(.dark, .dark *));
 
 /* Centrirani red za auth modal/forme */
 .auth-row {
@@ -10,7 +11,7 @@
 }
 
 /* Gladak prelaz za hover efekte i modale */
-* {
+*, ::before, ::after {
   transition: background-color 0.2s ease, border-color 0.2s ease;
 }
 
