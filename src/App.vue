@@ -109,7 +109,7 @@ onUnmounted(() => {
   if (toastTimeout) clearTimeout(toastTimeout);
 });
 
-// Zaštita za korpu i profil - preusmerava na /login umesto otvaranja modala
+// Zaštita za korpu i profil - preusmerava na /login umesto otvaranja stranice ako korisnik nije prijavljen
 const goTo = (path: string) => {
   if ((path === '/cart' || path === '/profile') && !currentUser.value) {
     router.push('/login');
@@ -289,7 +289,7 @@ const logout = () => {
       </div>
     </transition>
 
-    <!-- Plivajući Chatbot u donjem desnom uglu -->
+    <!--  Chatbot  -->
     <div class="print-hidden">
       <FloraChatbot />
     </div>
