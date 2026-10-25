@@ -8,10 +8,71 @@ const chatMessages = ref([
 ]);
 
 const chatbotOptions = [
-  { title: 'Koje biljke su najbolje za početnike?', reply: 'Za početnike najtoplije preporučujemo Zamioculcas, Sansevieria (Inat jezik) i Epipremnum. Traže minimalnu negu!' },
-  { title: 'Kako funkcioniše rezervacija?', reply: 'Rezervacijom stavljate biljku u korpu, a nakon preuzimanja dostave možete je oceniti i ostaviti utisak u sistemu.' },
-  { title: 'Da li imate dostavu?', reply: 'Dostava se vrši na teritoriji cele Srbije u roku od 2 do 3 radna dana.' }
+  'Koje biljke su najbolje za početnike?',
+  'Kako često treba zalivati biljke?',
+  'Da li imate dostavu?'
 ];
+
+const replies = [
+  {
+    keywords: ['zdravo', 'cao', 'ćao', 'dobar dan', 'dobro jutro', 'dobro vece', 'dobro veče'],
+    answer: 'Zdravo! 🌿 Rado ću pomoći oko izbora biljaka, nege ili rezervacije. Šta vas zanima?'
+  },
+  {
+    keywords: ['pocetnik', 'početnik', 'lako', 'pocetnike', 'početnike'],
+    answer: 'Za početnike su dobar izbor zamiokulkas, sanseverija i epipremnum. Uglavnom su otporne biljke i ne traže često zalivanje. Ipak, proverite zemlju pre nego što ih zalijete.'
+  },
+  {
+    keywords: ['zaliv', 'voda', 'suva zemlja', 'suvo tlo'],
+    answer: 'Učestalost zalivanja zavisi od vrste biljke, svetlosti i godišnjeg doba. Pre zalivanja dodirnite zemlju; zalijte kada se njen gornji sloj prosuši i ne ostavljajte biljku da stoji u vodi.'
+  },
+  {
+    keywords: ['svetl', 'sunce', 'prozor', 'mesto za biljku'],
+    answer: 'Većini sobnih biljaka prija svetlo mesto bez jakog direktnog podnevnog sunca. Ipak, potrebe se razlikuju od vrste do vrste — recite mi naziv biljke za konkretniji savet.'
+  },
+  {
+    keywords: ['zuti list', 'žuti list', 'listovi zute', 'listovi žute', 'list opada', 'opadaju listovi'],
+    answer: 'Žuti listovi mogu biti posledica previše ili premalo vode, promene svetlosti ili prirodnog starenja. Proverite vlažnost zemlje i da li saksija ima drenažne otvore. Koja je biljka u pitanju?'
+  },
+  {
+    keywords: ['kaktus', 'sukul'],
+    answer: 'Kaktusi i sukulenti vole mnogo svetlosti i dobro dreniranu zemlju. Zalivajte ih tek kada se zemlja potpuno osuši; zimi im obično treba manje vode.'
+  },
+  {
+    keywords: ['ljubim', 'mack', 'mačk', 'pas', 'dete', 'otrov'],
+    answer: 'Bezbednost zavisi od tačne vrste biljke, a neke sobne biljke mogu biti štetne ako se pojedu. Proverite naziv vrste sa pouzdanim izvorom i držite biljke van domašaja dece i ljubimaca.'
+  },
+  {
+    keywords: ['dostav', 'isporuk'],
+    answer: 'Prema informacijama u ovoj demonstraciji, dostava je dostupna širom Srbije i traje oko 2–3 radna dana.'
+  },
+  {
+    keywords: ['rezerv', 'korpa', 'naruc', 'naruč'],
+    answer: 'Biljku možete rezervisati iz kataloga. Rezervacija se prikazuje u korpi, gde možete pregledati i upravljati izabranim biljkama.'
+  },
+  {
+    keywords: ['cena', 'cenovnik', 'popust', 'jeftin', 'skup'],
+    answer: 'Cene i dostupnost proverite u katalogu biljaka. Ovaj demo chatbot nema pristup podacima o trenutnim popustima.'
+  },
+  {
+    keywords: ['hvala'],
+    answer: 'Nema na čemu! 🌱 Slobodno pitajte ako vam treba još neki savet.'
+  }
+];
+
+const getBotReply = (message: string): string => {
+  const normalizedMessage = message.toLocaleLowerCase('sr')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '');
+  const matchedReply = replies.find(({ keywords }) =>
+    keywords.some(keyword => normalizedMessage.includes(
+      keyword.toLocaleLowerCase('sr').normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    ))
+  );
+
+  return matchedReply?.answer
+    ?? 'Mogu da pomognem sa osnovama nege biljaka, zalivanjem, svetlošću i rezervacijama. Napišite naziv biljke ili malo više detalja o pitanju.';
+};
 
 const sendChatMessage = (textToSend?: string) => {
   const messageText = textToSend || chatInput.value;
@@ -21,18 +82,7 @@ const sendChatMessage = (textToSend?: string) => {
   if (!textToSend) chatInput.value = '';
 
   setTimeout(() => {
-    let botReply = 'Hvala na pitanju! Naš tim stručnjaka će vam rado pomoći oko toga. Možete pogledati i naš katalog u gornjem meniju.';
-    
-    const lower = messageText.toLowerCase();
-    if (lower.includes('pocetnik') || lower.includes('početnik') || lower.includes('lako')) {
-      botReply = 'Za početnike su idealne biljke koje ne traže često zalivanje, poput kaktusa, sukulenata i Zamiokulkasa.';
-    } else if (lower.includes('popust') || lower.includes('cena') || lower.includes('jeftino')) {
-      botReply = 'Trenutno imamo sjajan izbor sobnog bilja sa redovnim ažuriranjem stanja u korpi rezervacija!';
-    } else if (lower.includes('zdravo') || lower.includes('cao') || lower.includes('čaо')) {
-      botReply = 'Ćao! Kako tebi i tvojim biljkama ide danas?';
-    }
-
-    chatMessages.value.push({ sender: 'bot', text: botReply });
+    chatMessages.value.push({ sender: 'bot', text: getBotReply(messageText) });
   }, 600);
 };
 </script>
@@ -69,8 +119,8 @@ const sendChatMessage = (textToSend?: string) => {
 
       <!-- Brze opcije -->
       <div class="p-2 bg-slate-100 dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 flex gap-1 overflow-x-auto no-scrollbar">
-        <button v-for="(opt, idx) in chatbotOptions" :key="idx" @click="sendChatMessage(opt.reply)" class="bg-white dark:bg-slate-800 hover:bg-emerald-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 px-3 py-1.5 rounded-xl text-[11px] whitespace-nowrap shadow-sm transition">
-          {{ opt.title }}
+        <button v-for="(option, idx) in chatbotOptions" :key="idx" @click="sendChatMessage(option)" class="bg-white dark:bg-slate-800 hover:bg-emerald-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 px-3 py-1.5 rounded-xl text-[11px] whitespace-nowrap shadow-sm transition">
+          {{ option }}
         </button>
       </div>
 
