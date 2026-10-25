@@ -144,6 +144,9 @@ const logout = () => {
           <button @click="goTo('/profile')" :class="route.path === '/profile' ? 'bg-emerald-700 dark:bg-emerald-900 font-semibold' : 'hover:bg-emerald-700/60'" class="px-4 py-2 rounded-xl transition text-sm flex items-center gap-2">
             <i class="fa-solid fa-user-gear"></i> Moj Profil
           </button>
+          <button @click="goTo('/about')" :class="route.path === '/about' ? 'bg-emerald-700 dark:bg-emerald-900 font-semibold' : 'hover:bg-emerald-700/60'" class="px-4 py-2 rounded-xl transition text-sm flex items-center gap-2">
+            <i class="fa-solid fa-circle-info"></i> O Nama
+          </button>
         </nav>
 
         <div class="flex items-center space-x-3">
