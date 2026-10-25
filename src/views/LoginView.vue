@@ -1,32 +1,20 @@
 <script setup lang="ts">
-import { reactive, ref } from 'vue';
+import { ref } from 'vue';
 import { useRouter } from 'vue-router';
-import type { User } from '@/models/user.model';
+import { authenticateAccount } from '@/services/auth.service';
 
 const router = useRouter();
 const email = ref('');
 const lozinka = ref('');
+const errorMessage = ref('');
 
-const handleLogin = () => {
-  if (!email.value || !lozinka.value) return;
+const handleLogin = async () => {
+  errorMessage.value = '';
+  const user = await authenticateAccount(email.value, lozinka.value);
 
-  // Kreiramo ili izvlačimo profil korisnika
-  const existingUserStr = localStorage.getItem('flora_user');
-  let user: User;
-
-  if (existingUserStr) {
-    user = JSON.parse(existingUserStr);
-    user.email = email.value; // Ažuriramo email ako se prijavio drugim
-  } else {
-    // Podrazumevane vrednosti ako se prijavljuje prvi put
-    user = {
-      ime: email.value.split('@')[0] || 'Kupac',
-      prezime: 'Korisnik',
-      email: email.value,
-      telefon: '+381 64 1234 567',
-      adresa: 'Bulevar Kralja Aleksandra 73, Beograd',
-      omiljeneBiljke: 'Sobne i baštenske biljke'
-    };
+  if (!user) {
+    errorMessage.value = 'Nalog ne postoji ili je lozinka pogrešna. Registrujte se ako još nemate nalog.';
+    return;
   }
 
   localStorage.setItem('flora_user', JSON.stringify(user));
@@ -46,6 +34,9 @@ const handleLogin = () => {
     </div>
 
     <form @submit.prevent="handleLogin" class="space-y-4">
+      <p v-if="errorMessage" role="alert" class="text-sm text-red-600 dark:text-red-400">
+        {{ errorMessage }}
+      </p>
       <div>
         <label class="block text-xs font-bold uppercase text-slate-500 dark:text-slate-400 mb-1">Email adresa</label>
         <input v-model="email" type="email" required placeholder="korisnik@example.com" class="w-full p-3 rounded-xl border dark:border-slate-700 bg-transparent text-sm text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500">

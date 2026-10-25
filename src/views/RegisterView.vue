@@ -1,9 +1,11 @@
 <script setup lang="ts">
-import { reactive } from 'vue';
+import { reactive, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import type { User } from '@/models/user.model';
+import { registerAccount } from '@/services/auth.service';
 
 const router = useRouter();
+const errorMessage = ref('');
 
 const form = reactive({
   ime: '',
@@ -15,7 +17,8 @@ const form = reactive({
   omiljeneBiljke: 'Sobne biljke'
 });
 
-const handleRegister = () => {
+const handleRegister = async () => {
+  errorMessage.value = '';
   const newUser: User = {
     ime: form.ime,
     prezime: form.prezime,
@@ -24,6 +27,12 @@ const handleRegister = () => {
     adresa: form.adresa,
     omiljeneBiljke: form.omiljeneBiljke
   };
+
+  const registered = await registerAccount(newUser, form.lozinka);
+  if (!registered) {
+    errorMessage.value = 'Već postoji nalog sa ovom email adresom. Prijavite se umesto toga.';
+    return;
+  }
 
   localStorage.setItem('flora_user', JSON.stringify(newUser));
   window.dispatchEvent(new Event('flora-user-updated'));
@@ -42,6 +51,9 @@ const handleRegister = () => {
     </div>
 
     <form @submit.prevent="handleRegister" class="space-y-4">
+      <p v-if="errorMessage" role="alert" class="text-sm text-red-600 dark:text-red-400">
+        {{ errorMessage }}
+      </p>
       <div class="grid grid-cols-2 gap-3">
         <div>
           <label class="block text-xs font-bold uppercase text-slate-500 dark:text-slate-400 mb-1">Ime</label>
