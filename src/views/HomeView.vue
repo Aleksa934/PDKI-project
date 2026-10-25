@@ -333,6 +333,8 @@ const formatDate = (dateStr: string) => {
         <p class="text-xs text-slate-700 dark:text-slate-300 mb-4 leading-relaxed">{{ selectedPlantForQuickView.description }}</p>
         
         <div class="space-y-2 mb-6 text-xs">
+          <p><strong>Tip biljke:</strong> {{ selectedPlantForQuickView.plant_type }}</p>
+          <p><strong>Datum proizvodnje sadnice/semena:</strong> {{ formatDate(selectedPlantForQuickView.production_date) }}</p>
           <div class="bg-emerald-50 dark:bg-emerald-950/40 p-3 rounded-xl border border-emerald-100 dark:border-emerald-900">
             <strong class="text-emerald-900 block mb-1">Uputstvo za sadnju:</strong> 
             <span class="text-slate-700 dark:text-slate-300">{{ selectedPlantForQuickView.planting_instructions }}</span>
