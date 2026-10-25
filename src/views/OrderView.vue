@@ -33,7 +33,7 @@ const formatDate = (dateStr: string) => {
         <p class="text-sm text-slate-500 dark:text-slate-400">Pregledajte, modifikujte rezervisane biljke ili ocenite pristigle pošiljke.</p>
       </div>
       <button @click="emit('go-catalog')" class="text-xs bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 px-3 py-2 rounded-xl font-semibold text-slate-700 dark:text-slate-200 transition">
-        <i class="fa-solid fa-arrow-left"></i> Nazad na katalog
+        <i class="fa-solid fa-arrow-left"></i> Nazad na Katalog Biljaka
       </button>
     </div>
 
@@ -54,7 +54,7 @@ const formatDate = (dateStr: string) => {
       <div class="lg:col-span-2 space-y-4">
         <div v-for="item in cart" :key="item.cartId" class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm flex flex-col sm:flex-row gap-5">
           <!-- Ispravljeno item.image i item.name -->
-          <img :src="item.image" :alt="item.name" class="w-full sm:w-28 h-28 object-cover rounded-xl bg-slate-100 dark:bg-slate-800">
+          <img :src="item.image_url" :alt="item.name" class="w-full sm:w-28 h-28 object-cover rounded-xl bg-slate-100 dark:bg-slate-800">
           
           <div class="flex-grow flex flex-col justify-between">
             <div>
@@ -70,7 +70,7 @@ const formatDate = (dateStr: string) => {
               </div>
               
               <!-- Ispravljeno item.type i item.category (ili šta već imaš u modelu) -->
-              <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Tip: {{ item.type }} | Proizvodnja: {{ formatDate(item.datumProizvodnje) }}</p>
+              <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Tip: {{ item.plant_type }} | Proizvodnja: {{ formatDate(item.production_date) }}</p>
 
               <div v-if="item.status === 'rezervisano'" class="mt-3 bg-slate-50 dark:bg-slate-800/60 p-3 rounded-xl border border-slate-200 dark:border-slate-700 text-xs">
                 <label class="block font-semibold text-slate-600 dark:text-slate-300 mb-1">Napomena za dostavu / Količina:</label>
