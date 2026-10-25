@@ -125,7 +125,7 @@ const logout = () => {
 <template>
   <div class="min-h-screen flex flex-col justify-between bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 transition-colors duration-300 relative">
     <!-- Header -->
-    <header class="bg-emerald-800 dark:bg-emerald-950 text-white shadow-lg sticky top-0 z-40 border-b border-emerald-700/40 dark:border-emerald-900">
+    <header class="print-hidden bg-emerald-800 dark:bg-emerald-950 text-white shadow-lg sticky top-0 z-40 border-b border-emerald-700/40 dark:border-emerald-900">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
         <div class="flex items-center space-x-3 cursor-pointer" @click="goTo('/')">
           <div class="bg-emerald-500 p-2.5 rounded-2xl text-white"><i class="fa-solid fa-leaf text-2xl"></i></div>
@@ -190,7 +190,7 @@ const logout = () => {
         'bg-emerald-900 border-emerald-700 text-emerald-100': notification.type === 'success',
         'bg-rose-900 border-rose-700 text-rose-100': notification.type === 'error',
         'bg-slate-900 border-slate-700 text-white': notification.type === 'info'
-      }" class="fixed bottom-6 left-6 z-50 px-5 py-3 rounded-2xl shadow-2xl flex items-center space-x-3 border text-sm">
+      }" class="print-hidden fixed bottom-6 left-6 z-50 px-5 py-3 rounded-2xl shadow-2xl flex items-center space-x-3 border text-sm">
         <i :class="{
           'fa-solid fa-circle-check text-emerald-400': notification.type === 'success',
           'fa-solid fa-circle-exclamation text-rose-400': notification.type === 'error',
@@ -202,11 +202,39 @@ const logout = () => {
     </transition>
 
     <!-- Plivajući Chatbot u donjem desnom uglu -->
-    <FloraChatbot />
+    <div class="print-hidden">
+      <FloraChatbot />
+    </div>
 
     <!-- Footer -->
-    <footer class="bg-slate-900 dark:bg-slate-950 text-slate-400 text-xs py-8 border-t border-slate-800 dark:border-slate-900 mt-12 text-center">
+    <footer class="print-hidden bg-slate-900 dark:bg-slate-950 text-slate-400 text-xs py-8 border-t border-slate-800 dark:border-slate-900 mt-12 text-center">
       <p class="font-semibold text-slate-300">Programiranje i Dizajn Korisničkih Interfejsa - Projekat</p>
     </footer>
   </div>
 </template>
+
+<style>
+@media print {
+  body {
+    background: white !important;
+  }
+
+  #app > div {
+    display: block !important;
+    min-height: 0 !important;
+    color: #111 !important;
+    background: white !important;
+  }
+
+  .print-hidden {
+    display: none !important;
+  }
+
+  main {
+    width: 100% !important;
+    max-width: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+}
+</style>

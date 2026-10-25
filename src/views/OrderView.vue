@@ -19,6 +19,13 @@ const cartTotal = computed(() => {
   return props.cart.reduce((sum, item) => sum + (item.price * item.kolicina), 0);
 });
 
+const arrivedItems = computed(() => props.cart.filter(item => item.status === 'pristiglo'));
+const arrivedTotal = computed(() => {
+  return arrivedItems.value.reduce((sum, item) => sum + (item.price * item.kolicina), 0);
+});
+
+const printReceipt = () => window.print();
+
 const formatDate = (dateStr: string) => {
   if (!dateStr) return '2023-01-01';
   return new Date(dateStr).toLocaleDateString('sr-RS');
@@ -32,10 +39,18 @@ const formatDate = (dateStr: string) => {
         <h2 class="text-2xl font-bold text-slate-900 dark:text-white">Moja Korpa Rezervacija</h2>
         <p class="text-sm text-slate-500 dark:text-slate-400">Pregledajte, modifikujte rezervisane biljke ili ocenite pristigle pošiljke.</p>
       </div>
-      <button @click="emit('go-catalog')" class="text-xs bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 px-3 py-2 rounded-xl font-semibold text-slate-700 dark:text-slate-200 transition">
+      <button @click="emit('go-catalog')" class="print-hidden text-xs bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 px-3 py-2 rounded-xl font-semibold text-slate-700 dark:text-slate-200 transition">
         <i class="fa-solid fa-arrow-left"></i> Nazad na Katalog Biljaka
       </button>
     </div>
+
+    <section class="print-only" aria-label="Potvrda pristiglih rezervacija">
+      <h1 class="text-2xl font-bold">FloraOaza — potvrda rezervacije</h1>
+      <p class="mt-1 text-sm">Datum: {{ new Date().toLocaleDateString('sr-RS') }}</p>
+      <p class="mt-1 text-sm">Pristigle rezervacije: {{ arrivedItems.length }}</p>
+      <p class="mt-1 text-sm font-bold">Ukupno: {{ arrivedTotal.toLocaleString('sr-RS') }} RSD</p>
+      <hr class="my-4">
+    </section>
 
     <!-- Empty State -->
     <div v-if="cart.length === 0" class="bg-white dark:bg-slate-900 rounded-3xl p-12 text-center border border-slate-200 dark:border-slate-800 shadow-sm max-w-2xl mx-auto my-8">
@@ -45,14 +60,14 @@ const formatDate = (dateStr: string) => {
       <h3 class="text-xl font-bold text-slate-800 dark:text-white mb-2">Vaša korpa je prazna</h3>
       <p class="text-slate-500 dark:text-slate-400 text-sm mb-6">Izgleda da još uvek niste izabrali nijednu biljku.</p>
       <button @click="emit('go-catalog')" class="bg-emerald-600 text-white font-bold px-6 py-3 rounded-xl hover:bg-emerald-500 shadow-lg transition">
-        Razgledaj Katalog Biljaka
+        Idi na katalog biljaka
       </button>
     </div>
 
     <!-- Lista stavki u korpi -->
-    <div v-else class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-      <div class="lg:col-span-2 space-y-4">
-        <div v-for="item in cart" :key="item.cartId" class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm flex flex-col sm:flex-row gap-5">
+    <div v-else class="print-cart-layout grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div class="print-cart-list lg:col-span-2 space-y-4">
+        <div v-for="item in cart" :key="item.cartId" :class="{ 'print-hidden': item.status !== 'pristiglo' }" class="print-card bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm flex flex-col sm:flex-row gap-5">
           <!-- Ispravljeno item.image i item.name -->
           <img :src="item.image_url" :alt="item.name" class="w-full sm:w-28 h-28 object-cover rounded-xl bg-slate-100 dark:bg-slate-800">
           
@@ -83,7 +98,7 @@ const formatDate = (dateStr: string) => {
                 </div>
               </div>
 
-              <div v-if="item.status === 'pristiglo'" class="mt-3 bg-emerald-50 dark:bg-emerald-950/30 p-3 rounded-xl border border-emerald-200 dark:border-emerald-900/50 text-xs">
+              <div v-if="item.status === 'pristiglo'" class="print-hidden mt-3 bg-emerald-50 dark:bg-emerald-950/30 p-3 rounded-xl border border-emerald-200 dark:border-emerald-900/50 text-xs">
                 <p class="font-bold text-emerald-900 dark:text-emerald-300 mb-1"><i class="fa-solid fa-star text-amber-500"></i> Ocenite pristiglu biljku:</p>
                 <div class="flex items-center gap-2 mb-2">
                   <div class="flex text-amber-400 text-base cursor-pointer">
@@ -103,7 +118,7 @@ const formatDate = (dateStr: string) => {
               <div class="text-sm font-extrabold text-emerald-700 dark:text-emerald-400">
                 {{ (item.price * item.kolicina).toLocaleString('sr-RS') }} RSD
               </div>
-              <div class="flex items-center gap-3">
+              <div class="print-hidden flex items-center gap-3">
                 <button @click="emit('toggle-status', item)" class="text-xs text-slate-500 dark:text-slate-400 underline hover:text-slate-800 dark:hover:text-slate-200">Simuliraj Status</button>
                 <button @click="emit('remove', item.cartId)" class="bg-rose-100 hover:bg-rose-200 dark:bg-rose-950/50 dark:hover:bg-rose-900 text-rose-700 dark:text-rose-300 font-bold px-3 py-1.5 rounded-xl text-xs transition flex items-center gap-1">
                   <i class="fa-solid fa-trash-can"></i> Obriši
@@ -115,7 +130,7 @@ const formatDate = (dateStr: string) => {
       </div>
 
       <!-- Suma Rezervacije -->
-      <div class="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-md h-fit space-y-4">
+      <div class="print-hidden bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-md h-fit space-y-4">
         <h3 class="text-lg font-bold text-slate-900 dark:text-white border-b border-slate-100 dark:border-slate-800 pb-3">Suma Rezervacije</h3>
         <div class="space-y-2 text-sm text-slate-600 dark:text-slate-300">
           <div class="flex justify-between">
@@ -131,6 +146,9 @@ const formatDate = (dateStr: string) => {
           <span class="text-base font-bold text-slate-800 dark:text-white">Ukupno:</span>
           <span class="text-2xl font-black text-emerald-700 dark:text-emerald-400">{{ cartTotal.toLocaleString('sr-RS') }} RSD</span>
         </div>
+        <button v-if="arrivedItems.length > 0" @click="printReceipt" class="w-full border border-emerald-600 text-emerald-700 dark:text-emerald-400 font-bold py-3 rounded-2xl hover:bg-emerald-50 dark:hover:bg-emerald-950/40 transition flex items-center justify-center gap-2 text-sm">
+          <i class="fa-solid fa-file-arrow-down"></i> Preuzmi potvrdu (PDF / Štampa)
+        </button>
         <button @click="emit('confirm')" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-2xl shadow-lg transition flex items-center justify-center gap-2 text-sm">
           <i class="fa-solid fa-paper-plane"></i> Potvrdi Rezervaciju
         </button>
@@ -138,3 +156,39 @@ const formatDate = (dateStr: string) => {
     </div>
   </div>
 </template>
+
+<style scoped>
+.print-only {
+  display: none;
+}
+
+@media print {
+  .print-only {
+    display: block !important;
+  }
+
+  .print-hidden {
+    display: none !important;
+  }
+
+  .print-cart-layout {
+    display: block !important;
+  }
+
+  .print-cart-list {
+    width: 100% !important;
+  }
+
+  .print-card {
+    color: #111 !important;
+    background: white !important;
+    border-color: #aaa !important;
+    box-shadow: none !important;
+    break-inside: avoid;
+  }
+
+  .print-card :where(*) {
+    color: #111 !important;
+  }
+}
+</style>

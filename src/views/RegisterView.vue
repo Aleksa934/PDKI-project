@@ -1,12 +1,11 @@
 <script setup lang="ts">
-import { reactive, ref } from 'vue';
+import { computed, reactive, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import type { User } from '@/models/user.model';
 import { registerAccount } from '@/services/auth.service';
 
 const router = useRouter();
 const errorMessage = ref('');
-
 const form = reactive({
   ime: '',
   prezime: '',
@@ -17,8 +16,24 @@ const form = reactive({
   omiljeneBiljke: 'Sobne biljke'
 });
 
+const passwordRequirements = computed(() => ({
+  length: form.lozinka.length > 6,
+  uppercase: /[A-ZČĆŠĐŽ]/.test(form.lozinka),
+  number: /\d/.test(form.lozinka)
+}));
+const isPasswordValid = computed(() =>
+  passwordRequirements.value.length &&
+  passwordRequirements.value.uppercase &&
+  passwordRequirements.value.number
+);
+
 const handleRegister = async () => {
   errorMessage.value = '';
+  if (!isPasswordValid.value) {
+    errorMessage.value = 'Lozinka mora imati najmanje 7 karaktera, veliko slovo i broj.';
+    return;
+  }
+
   const newUser: User = {
     ime: form.ime,
     prezime: form.prezime,
@@ -72,7 +87,21 @@ const handleRegister = async () => {
         </div>
         <div>
           <label class="block text-xs font-bold uppercase text-slate-500 dark:text-slate-400 mb-1">Lozinka</label>
-          <input v-model="form.lozinka" type="password" required placeholder="••••••••" class="w-full p-2.5 rounded-xl border dark:border-slate-700 bg-transparent text-sm text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+          <input v-model="form.lozinka" type="password" required autocomplete="new-password" aria-describedby="password-requirements" placeholder="••••••••" class="w-full p-2.5 rounded-xl border dark:border-slate-700 bg-transparent text-sm text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+          <ul id="password-requirements" aria-live="polite" class="mt-2 space-y-1 text-xs">
+            <li :class="passwordRequirements.length ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-500 dark:text-slate-400'">
+              <i :class="passwordRequirements.length ? 'fa-solid fa-circle-check' : 'fa-regular fa-circle'"></i>
+              Najmanje 7 karaktera
+            </li>
+            <li :class="passwordRequirements.uppercase ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-500 dark:text-slate-400'">
+              <i :class="passwordRequirements.uppercase ? 'fa-solid fa-circle-check' : 'fa-regular fa-circle'"></i>
+              Jedno veliko slovo
+            </li>
+            <li :class="passwordRequirements.number ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-500 dark:text-slate-400'">
+              <i :class="passwordRequirements.number ? 'fa-solid fa-circle-check' : 'fa-regular fa-circle'"></i>
+              Jedan broj
+            </li>
+          </ul>
         </div>
       </div>
 
@@ -92,7 +121,7 @@ const handleRegister = async () => {
         <input v-model="form.adresa" type="text" required placeholder="Nemanjina 12, Beograd" class="w-full p-2.5 rounded-xl border dark:border-slate-700 bg-transparent text-sm text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500">
       </div>
 
-      <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-xl text-sm transition shadow-lg mt-2">
+      <button type="submit" :disabled="!isPasswordValid" class="w-full bg-emerald-600 hover:bg-emerald-500 disabled:bg-slate-400 disabled:cursor-not-allowed text-white font-bold py-3 rounded-xl text-sm transition shadow-lg mt-2">
         Registruj se i kreiraj profil
       </button>
     </form>

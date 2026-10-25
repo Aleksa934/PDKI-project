@@ -34,11 +34,13 @@ onMounted(async () => {
 });
 
 const filteredPlants = computed(() => {
+  const query = filters.value.query.trim().toLowerCase();
+
   return plants.value.filter(p => {
-    const matchQuery = !filters.value.query || 
-      p.name.toLowerCase().includes(filters.value.query.toLowerCase()) || 
-      p.latin_name.toLowerCase().includes(filters.value.query.toLowerCase()) ||
-      p.description.toLowerCase().includes(filters.value.query.toLowerCase());
+    const matchQuery = !query ||
+      p.name.toLowerCase().includes(query) ||
+      p.latin_name.toLowerCase().includes(query) ||
+      p.description.toLowerCase().includes(query);
 
     const matchCategory = !filters.value.category || p.category === filters.value.category;
     const matchGroup = !filters.value.targetGroup || p.target_audience === filters.value.targetGroup;
@@ -50,6 +52,32 @@ const filteredPlants = computed(() => {
     return matchQuery && matchCategory && matchGroup && matchPrice && matchRating && matchYear;
   });
 });
+
+const highlightedParts = (text: string) => {
+  const query = filters.value.query.trim();
+  if (!query) return [{ text, matched: false }];
+
+  const parts: { text: string; matched: boolean }[] = [];
+  const lowerText = text.toLowerCase();
+  const lowerQuery = query.toLowerCase();
+  let cursor = 0;
+  let matchIndex = lowerText.indexOf(lowerQuery, cursor);
+
+  while (matchIndex !== -1) {
+    if (matchIndex > cursor) {
+      parts.push({ text: text.slice(cursor, matchIndex), matched: false });
+    }
+    parts.push({ text: text.slice(matchIndex, matchIndex + query.length), matched: true });
+    cursor = matchIndex + query.length;
+    matchIndex = lowerText.indexOf(lowerQuery, cursor);
+  }
+
+  if (cursor < text.length) {
+    parts.push({ text: text.slice(cursor), matched: false });
+  }
+
+  return parts;
+};
 
 const handleReserve = (plant: Plant) => {
   if (!props.currentUser) {
@@ -147,9 +175,12 @@ const formatDate = (dateStr: string) => {
     </div>
 
     <div v-else-if="filteredPlants.length === 0" class="bg-white rounded-2xl p-12 text-center border border-slate-200 shadow-sm">
-      <i class="fa-solid fa-seedling text-5xl text-slate-300 mb-4"></i>
-      <h3 class="text-lg font-bold text-slate-700 mb-1">Nije pronađena nijedna biljka</h3>
-      <button @click="resetFilters" class="mt-4 bg-emerald-600 text-white font-semibold px-4 py-2 rounded-xl text-sm">Prikaži sve biljke</button>
+      <div class="bg-emerald-50 w-20 h-20 mx-auto flex items-center justify-center rounded-full text-emerald-600 text-3xl mb-4">
+        <i class="fa-solid fa-magnifying-glass"></i>
+      </div>
+      <h3 class="text-lg font-bold text-slate-700 mb-1">Nismo pronašli biljku sa tim kriterijumom</h3>
+      <p class="text-sm text-slate-500">Pokušajte sa drugim pojmom ili resetujte filtere.</p>
+      <button @click="resetFilters" class="mt-4 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold px-4 py-2 rounded-xl text-sm transition">Resetuj filtere</button>
     </div>
 
     <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -166,10 +197,14 @@ const formatDate = (dateStr: string) => {
               <span class="text-xs text-slate-400">{{ formatDate(plant.production_date) }}</span>
             </div>
             <button @click="openQuickView(plant)" class="text-left text-lg font-bold text-slate-900 hover:text-emerald-700 mb-1">
-              {{ plant.name }}
+              <span v-for="(part, index) in highlightedParts(plant.name)" :key="index" :class="part.matched ? 'bg-emerald-100 text-emerald-800 rounded-sm' : ''">{{ part.text }}</span>
             </button>
-            <p class="text-xs italic text-slate-500 mb-2">{{ plant.latin_name }}</p>
-            <p class="text-xs text-slate-600 line-clamp-2 mb-4">{{ plant.description }}</p>
+            <p class="text-xs italic text-slate-500 mb-2">
+              <span v-for="(part, index) in highlightedParts(plant.latin_name)" :key="index" :class="part.matched ? 'bg-emerald-100 text-emerald-800 rounded-sm' : ''">{{ part.text }}</span>
+            </p>
+            <p class="text-xs text-slate-600 line-clamp-2 mb-4">
+              <span v-for="(part, index) in highlightedParts(plant.description)" :key="index" :class="part.matched ? 'bg-emerald-100 text-emerald-800 rounded-sm font-semibold' : ''">{{ part.text }}</span>
+            </p>
           </div>
           <div>
             <div class="bg-emerald-50 p-2.5 rounded-xl border border-emerald-100 text-xs text-emerald-800 mb-4 flex items-center gap-2">
