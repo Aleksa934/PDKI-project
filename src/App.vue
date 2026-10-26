@@ -218,7 +218,7 @@ const logout = () => {
           <div class="bg-emerald-500 p-2.5 rounded-2xl text-white"><i class="fa-solid fa-leaf text-2xl"></i></div>
           <div>
             <span class="text-2xl font-bold tracking-tight">FloraOaza</span>
-            <span class="block text-xs text-emerald-200 font-light">Digitalna Prodavnica Biljaka</span>
+            <span class="block text-xs text-emerald-200 font-light"> Prodavnica Biljaka</span>
           </div>
         </div>
 
