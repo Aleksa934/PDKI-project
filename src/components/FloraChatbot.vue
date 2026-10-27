@@ -90,14 +90,13 @@ const sendChatMessage = (textToSend?: string) => {
 
 <template>
   <div class="fixed bottom-6 right-6 z-50">
-    <!-- Floating Dugme -->
+    <!-- Dugme za bota -->
     <button v-if="!showChatbot" @click="showChatbot = true" class="bg-emerald-600 hover:bg-emerald-500 text-white p-4 rounded-full shadow-2xl flex items-center justify-center transition transform hover:scale-105 border-2 border-emerald-400">
       <i class="fa-solid fa-robot text-2xl"></i>
     </button>
 
     <!-- Chat Prozor -->
     <div v-if="showChatbot" class="w-80 sm:w-96 bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 flex flex-col overflow-hidden transition-all">
-      <!-- Header -->
       <div class="bg-emerald-800 dark:bg-emerald-950 text-white p-4 flex items-center justify-between">
         <div class="flex items-center space-x-2">
           <div class="bg-emerald-600 p-2 rounded-xl"><i class="fa-solid fa-robot"></i></div>
@@ -118,7 +117,7 @@ const sendChatMessage = (textToSend?: string) => {
         </div>
       </div>
 
-      <!-- Brze opcije -->
+      <!-- opcije -->
       <div class="p-2 bg-slate-100 dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 flex gap-1 overflow-x-auto no-scrollbar">
         <button v-for="(option, idx) in chatbotOptions" :key="idx" @click="sendChatMessage(option)" class="bg-white dark:bg-slate-800 hover:bg-emerald-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 px-3 py-1.5 rounded-xl text-[11px] whitespace-nowrap shadow-sm transition">
           {{ option }}
