@@ -60,6 +60,7 @@ const replies = [
   }
 ];
 
+// Bot odgovara izborom unapred definisanog odgovora na osnovu ključnih reči.
 const getBotReply = (message: string): string => {
   const normalizedMessage = message.toLocaleLowerCase('sr')
     .normalize('NFD')

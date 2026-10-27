@@ -14,7 +14,7 @@ const emit = defineEmits<{
   (e: 'go-catalog'): void;
 }>();
 
-// Ispravljeno na item.price (jer API vraća price, ne cena)
+// Otkazane rezervacije se izostavljaju iz ukupnog iznosa.
 const cartTotal = computed(() => {
   return props.cart
     .filter(item => item.status !== 'otkazano')
@@ -28,6 +28,7 @@ const arrivedTotal = computed(() => {
   return arrivedItems.value.reduce((sum, item) => sum + (item.price * item.kolicina), 0);
 });
 
+// Štampanje potvrde simulira preuzimanje dokumenta za pristigle rezervacije.
 const printReceipt = () => window.print();
 
 const formatDate = (dateStr: string) => {
@@ -144,6 +145,7 @@ const formatDate = (dateStr: string) => {
               </div>
               <div class="print-hidden flex items-center gap-3">
                 <template v-if="item.status === 'rezervisano'">
+                  <!-- Pristizanje je simulirano promenom statusa, bez stvarne dostave. -->
                   <button @click="emit('set-status', item.cartId, 'pristiglo')" class="text-xs text-emerald-700 dark:text-emerald-400 underline hover:text-emerald-800">Simuliraj pristizanje</button>
                   <button @click="emit('set-status', item.cartId, 'otkazano')" class="text-xs text-rose-700 dark:text-rose-400 underline hover:text-rose-800">Otkaži rezervaciju</button>
                 </template>

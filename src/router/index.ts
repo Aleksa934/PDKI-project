@@ -44,6 +44,7 @@ const router = createRouter({
   ]
 })
 
+// Ovo je navigaciona zaštita prototipa; stvarna autorizacija zahteva serversku proveru.
 router.beforeEach((to) => {
   if (to.meta.requiresAuth && !localStorage.getItem('flora_user')) {
     return { name: 'login', query: { redirect: to.fullPath } };

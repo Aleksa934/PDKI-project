@@ -11,6 +11,7 @@ const router = useRouter();
 const route = useRoute();
 
 const currentUser = ref<User | null>(JSON.parse(localStorage.getItem('flora_user') || 'null'));
+// Svaki nalog dobija zasebnu korpu kako se rezervacije korisnika ne bi mešale.
 const cartKey = (email: string) => `flora_cart_${encodeURIComponent(email.trim().toLowerCase())}`;
 const normalizeCart = (items: CartItem[]) => items.map(item =>
   item.ocenaSacuvana === undefined
@@ -21,6 +22,7 @@ const loadCart = (email: string): CartItem[] => {
   const storedCart = localStorage.getItem(cartKey(email));
   if (storedCart) return normalizeCart(JSON.parse(storedCart) as CartItem[]);
 
+  // Pri prvom učitavanju prebacuje ranije zajedničke podatke u korpu prijavljenog naloga.
   const legacyCart = localStorage.getItem('flora_cart');
   if (legacyCart) {
     const parsedCart = normalizeCart(JSON.parse(legacyCart) as CartItem[]);
@@ -171,6 +173,7 @@ const confirmReservations = () => {
 };
 
 const saveRating = (item: CartItem) => {
+  // Ocenu može da ostavi samo korisnik za pristiglu stavku i to jednom.
   if (item.status !== 'pristiglo' || item.mojaOcena === null || item.ocenaSacuvana) {
     showToast('Ocenjivanje je dostupno za pristigle biljke sa izabranom ocenom.', 'error');
     return;
@@ -193,13 +196,14 @@ const saveProfile = (user: User) => {
     return;
   }
   if (previousEmail.trim().toLowerCase() !== user.email.trim().toLowerCase()) {
+    // Sačuvaj postojeću korpu i pod novim email ključem kada korisnik promeni email.
     localStorage.setItem(cartKey(user.email), JSON.stringify(cart.value));
   }
   currentUser.value = user;
   showToast('Profil uspešno sačuvan!');
 };
 
-// Confirm kao da li korisnik zeli da se odjavi sto da ne
+// Traži potvrdu pre odjave da bi sprečio slučajan gubitak aktivne sesije.
 const logout = () => {
   if (window.confirm('Da li ste sigurni da želite da se odjavite?')) {
     currentUser.value = null;

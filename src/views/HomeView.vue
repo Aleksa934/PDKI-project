@@ -51,6 +51,7 @@ const filteredPlants = computed(() => {
   const careQuery = filters.value.careQuery.trim().toLowerCase();
   const reviewQuery = filters.value.reviewQuery.trim().toLowerCase();
 
+  // Svaki kriterijum se proverava odvojeno, pa korisnik može da kombinuje više filtera.
   return plants.value.filter(p => {
     const reviews = getReviews(p);
     const matchName = !nameQuery || `${p.name} ${p.latin_name}`.toLowerCase().includes(nameQuery);
