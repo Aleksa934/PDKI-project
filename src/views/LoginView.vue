@@ -57,7 +57,7 @@ const handleLogin = async () => {
 
     <div class="mt-6 text-center text-xs text-slate-600 dark:text-slate-400">
       Nemate nalog? 
-      <router-link to="/register" class="text-emerald-600 dark:text-emerald-400 font-bold hover:underline ml-1">Registrujte se ovde</router-link>
+      <router-link to="/register" class="text-emerald-600 dark:text-emerald-400 font-bold hover:underline ml-1">Registrujte se</router-link>
     </div>
   </div>
 </template>

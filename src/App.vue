@@ -253,7 +253,7 @@ const logout = () => {
             <button @click="logout" class="text-xs text-emerald-200 hover:text-white underline ml-2">Odjava</button>
           </div>
           <button v-else @click="router.push('/login')" class="bg-amber-400 hover:bg-amber-300 text-slate-900 font-bold px-4 py-2 rounded-xl text-sm transition">
-            Prijava
+            Prijavi se
           </button>
         </div>
       </div>
