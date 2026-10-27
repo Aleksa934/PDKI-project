@@ -1,10 +1,8 @@
 <script setup lang="ts">
-// AboutView.vue - O nama stranica za Flora Dom projekat
 </script>
 
 <template>
   <div class="max-w-5xl mx-auto space-y-12 py-6">
-    <!-- Hero sekcija -->
     <div class="text-center space-y-4">
       <div class="inline-flex items-center justify-center bg-emerald-100 dark:bg-emerald-950/60 p-4 rounded-3xl text-emerald-600 dark:text-emerald-400 mb-2 shadow-inner">
         <i class="fa-solid fa-seedling text-4xl"></i>
@@ -17,7 +15,7 @@
       </p>
     </div>
 
-    <!-- Kartice sa misijom i vizijom -->
+    
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
       <div class="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-3">
         <div class="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/80 flex items-center justify-center text-emerald-600 dark:text-emerald-400 font-bold">
@@ -50,7 +48,7 @@
       </div>
     </div>
 
-    <!-- Dodatna sekcija / Tim ili kontakt -->
+   
     <div class="bg-emerald-900 text-white p-8 rounded-3xl shadow-xl flex flex-col md:flex-row items-center justify-between gap-6">
       <div class="space-y-2 text-center md:text-left">
         <h3 class="text-xl font-bold">Imate pitanja ili predloge?</h3>

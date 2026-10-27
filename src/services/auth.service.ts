@@ -8,14 +8,14 @@ interface StoredAccount {
 
 const ACCOUNTS_KEY = 'flora_accounts';
 
-// Nalozi se čuvaju lokalno samo radi simulacije; nema serverske autentifikacije.
+// Nalozi se čuvaju lokalno samo u "local storage" nema serverske autentifikacije.
 const getAccounts = (): StoredAccount[] => {
   const storedAccounts = localStorage.getItem(ACCOUNTS_KEY);
   return storedAccounts ? JSON.parse(storedAccounts) as StoredAccount[] : [];
 };
 
 const hashPassword = async (password: string, salt: Uint8Array<ArrayBuffer>): Promise<string> => {
-  // Heširanje je demonstraciono; klijentsko čuvanje ne predstavlja bezbednu produkcionu prijavu.
+  //ovo za Heširanje sam ht
   const key = await crypto.subtle.importKey(
     'raw',
     new TextEncoder().encode(password),
@@ -86,7 +86,7 @@ export const updateAccountProfile = (currentEmail: string, user: User): boolean 
   )) {
     return false;
   }
-
+  //hteo dda provjerim da li je email vec u upotrebi, ako jeste ne dozvoljavam 
   currentAccount.user = { ...user, email };
   localStorage.setItem(ACCOUNTS_KEY, JSON.stringify(accounts));
   return true;

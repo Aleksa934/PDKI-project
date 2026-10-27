@@ -125,7 +125,7 @@ const sendChatMessage = (textToSend?: string) => {
         </button>
       </div>
 
-      <!-- Input -->
+      <!-- Input samo -->
       <form @submit.prevent="sendChatMessage()" class="p-3 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 flex items-center gap-2">
         <input v-model="chatInput" type="text" placeholder="Napišite poruku botu..." class="flex-grow p-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-transparent text-xs dark:text-white focus:outline-none focus:border-emerald-500">
         <button type="submit" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2.5 rounded-xl text-xs font-bold transition">
