@@ -199,7 +199,7 @@ const saveProfile = (user: User) => {
   showToast('Profil uspešno sačuvan!');
 };
 
-// Odjava sa potvrdom
+// Confirm kao da li korisnik zeli da se odjavi sto da ne
 const logout = () => {
   if (window.confirm('Da li ste sigurni da želite da se odjavite?')) {
     currentUser.value = null;
@@ -211,7 +211,7 @@ const logout = () => {
 
 <template>
   <div class="min-h-screen flex flex-col justify-between bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 transition-colors duration-300 relative">
-    <!-- Header -->
+    <!-- Header samo za pocetak eto -->
     <header class="print-hidden bg-emerald-800 dark:bg-emerald-950 text-white shadow-lg sticky top-0 z-40 border-b border-emerald-700/40 dark:border-emerald-900">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
         <div class="flex items-center space-x-3 cursor-pointer" @click="goTo('/')">
@@ -255,7 +255,7 @@ const logout = () => {
       </div>
     </header>
 
-    <!-- Main Content -->
+    <!-- Main SAmo -->
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-grow w-full">
       <router-view 
         :current-user="currentUser" 
@@ -289,7 +289,7 @@ const logout = () => {
       </div>
     </transition>
 
-    <!--  Chatbot  -->
+    <!--  mali chatbot  -->
     <div class="print-hidden">
       <FloraChatbot />
     </div>
