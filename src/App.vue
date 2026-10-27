@@ -217,7 +217,7 @@ const logout = () => {
         <div class="flex items-center space-x-3 cursor-pointer" @click="goTo('/')">
           <div class="bg-emerald-500 p-2.5 rounded-2xl text-white"><i class="fa-solid fa-leaf text-2xl"></i></div>
           <div>
-            <span class="text-2xl font-bold tracking-tight">FloraOaza</span>
+            <span class="text-2xl font-bold tracking-tight">Flora Dom</span>
             <span class="block text-xs text-emerald-200 font-light"> Prodavnica Biljaka</span>
           </div>
         </div>
@@ -296,7 +296,7 @@ const logout = () => {
 
     <!-- Footer -->
     <footer class="print-hidden bg-slate-900 dark:bg-slate-950 text-slate-400 text-xs py-8 border-t border-slate-800 dark:border-slate-900 mt-12 text-center">
-      <p class="font-semibold text-slate-300">Flora Oaza all rights reserved</p>
+      <p class="font-semibold text-slate-300">Flora Dom — sva prava zadržana</p>
     </footer>
   </div>
 </template>

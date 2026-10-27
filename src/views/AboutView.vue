@@ -1,5 +1,5 @@
 <script setup lang="ts">
-// AboutView.vue - O nama stranica za FloraOaza projekat
+// AboutView.vue - O nama stranica za Flora Dom projekat
 </script>
 
 <template>

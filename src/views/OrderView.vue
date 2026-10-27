@@ -49,7 +49,7 @@ const formatDate = (dateStr: string) => {
     </div>
 
     <section class="print-only" aria-label="Potvrda pristiglih rezervacija">
-      <h1 class="text-2xl font-bold">FloraOaza — potvrda rezervacije</h1>
+      <h1 class="text-2xl font-bold">Flora Dom — potvrda rezervacije</h1>
       <p class="mt-1 text-sm">Datum: {{ new Date().toLocaleDateString('sr-RS') }}</p>
       <p class="mt-1 text-sm">Pristigle rezervacije: {{ arrivedItems.length }}</p>
       <p class="mt-1 text-sm font-bold">Ukupno: {{ arrivedTotal.toLocaleString('sr-RS') }} RSD</p>

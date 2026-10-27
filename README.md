@@ -1,4 +1,4 @@
-# FloraOaza — prototip digitalne prodavnice biljaka
+# Flora Dom — prototip digitalne prodavnice biljaka
 
 Interaktivni Vue prototip omogućava pregled i pretragu kataloga biljaka, rezervisanje proizvoda, upravljanje korpom i profilom kupca. Podaci se simuliraju lokalno
 
@@ -27,5 +27,4 @@ npm run build
 - Izmena profila i lozinke, istorija rezervacija, štampanje potvrde za pristigle stavke i simulirani chat Bota.
 
 Biljke i početne recenzije su demonstracioni podaci. Ilustracije su vektorske slike, ne fotografije. Rezervacije, nalozi i korisničke ocene čuvaju se lokalno u pregledaču i nisu namenjeni stvarnoj prodaji ili autentifikaciji.
-
 
