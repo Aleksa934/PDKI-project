@@ -1,4 +1,4 @@
-# Flora Dom — prototip digitalne prodavnice biljaka
+# Flora Dom — prototip prodavnice biljaka
 
 Interaktivni Vue prototip omogućava pregled i pretragu kataloga biljaka, rezervisanje proizvoda, upravljanje korpom i profilom kupca. Podaci se simuliraju lokalno
 
