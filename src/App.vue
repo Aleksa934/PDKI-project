@@ -111,7 +111,7 @@ onUnmounted(() => {
   if (toastTimeout) clearTimeout(toastTimeout);
 });
 
-// Zaštita za korpu i profil - preusmerava na /login umesto otvaranja stranice ako korisnik nije prijavljen
+//Zaštita za korpu i profil preusmerava na /login umesto otvaranja stranice ako korisnik nije prijavljen
 const goTo = (path: string) => {
   if ((path === '/cart' || path === '/profile') && !currentUser.value) {
     router.push('/login');
@@ -298,7 +298,6 @@ const logout = () => {
       <FloraChatbot />
     </div>
 
-    <!-- Footer -->
     <footer class="print-hidden bg-slate-900 dark:bg-slate-950 text-slate-400 text-xs py-8 border-t border-slate-800 dark:border-slate-900 mt-12 text-center">
       <p class="font-semibold text-slate-300">Flora Dom — sva prava zadržana</p>
     </footer>
