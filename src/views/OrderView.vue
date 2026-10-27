@@ -28,7 +28,7 @@ const arrivedTotal = computed(() => {
   return arrivedItems.value.reduce((sum, item) => sum + (item.price * item.kolicina), 0);
 });
 
-// Štampanje potvrde simulira preuzimanje dokumenta za pristigle rezervacije.
+// Štampanje potvrde msm preuzimanje dokumenta za pristigle rezervacije nekako mi zanmiljivo da stavim
 const printReceipt = () => window.print();
 
 const formatDate = (dateStr: string) => {
@@ -57,7 +57,7 @@ const formatDate = (dateStr: string) => {
       <hr class="my-4">
     </section>
 
-    <!-- Empty State -->
+    <!-- Empty State nista drugo -->
     <div v-if="cart.length === 0" class="bg-white dark:bg-slate-900 rounded-3xl p-12 text-center border border-slate-200 dark:border-slate-800 shadow-sm max-w-2xl mx-auto my-8">
       <div class="bg-emerald-100 dark:bg-emerald-950/50 w-20 h-20 mx-auto flex items-center justify-center rounded-full text-emerald-600 dark:text-emerald-400 text-3xl mb-4">
         <i class="fa-solid fa-basket-shopping"></i>
@@ -73,9 +73,7 @@ const formatDate = (dateStr: string) => {
     <div v-else class="print-cart-layout grid grid-cols-1 lg:grid-cols-3 gap-8">
       <div class="print-cart-list lg:col-span-2 space-y-4">
         <div v-for="item in cart" :key="item.cartId" :class="{ 'print-hidden': item.status !== 'pristiglo' }" class="print-card bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm flex flex-col sm:flex-row gap-5">
-          <!-- Ispravljeno item.image i item.name -->
           <img :src="item.image_url" :alt="item.name" class="w-full sm:w-28 h-28 object-cover rounded-xl bg-slate-100 dark:bg-slate-800">
-          
           <div class="flex-grow flex flex-col justify-between">
             <div>
               <div class="flex items-center justify-between">
@@ -88,8 +86,6 @@ const formatDate = (dateStr: string) => {
                   {{ item.status }}
                 </span>
               </div>
-              
-              <!-- Ispravljeno item.type i item.category (ili šta već imaš u modelu) -->
               <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                 {{ item.plant_type }} · {{ item.category }} · {{ item.climate }} · {{ item.season }} ·
                 {{ item.target_audience }} · Proizvodnja: {{ formatDate(item.production_date) }}
@@ -99,7 +95,6 @@ const formatDate = (dateStr: string) => {
                 <p><strong>Sadnja:</strong> {{ item.planting_instructions }}</p>
                 <p><strong>Nega:</strong> {{ item.care_instructions }}</p>
               </div>
-
               <div v-if="item.status === 'rezervisano'" class="mt-3 bg-slate-50 dark:bg-slate-800/60 p-3 rounded-xl border border-slate-200 dark:border-slate-700 text-xs">
                 <label class="block font-semibold text-slate-600 dark:text-slate-300 mb-1">Napomena za dostavu / Količina:</label>
                 <input v-model="item.napomena" type="text" placeholder="Dodajte napomenu..." class="w-full p-2 border border-slate-300 dark:border-slate-700 rounded-lg text-xs bg-white dark:bg-slate-900 dark:text-white mb-2">
@@ -110,7 +105,6 @@ const formatDate = (dateStr: string) => {
                   <button @click="item.kolicina++" class="w-6 h-6 bg-slate-200 dark:bg-slate-700 dark:text-white rounded font-bold">+</button>
                 </div>
               </div>
-
               <div v-if="item.status === 'pristiglo'" class="print-hidden mt-3 bg-emerald-50 dark:bg-emerald-950/30 p-3 rounded-xl border border-emerald-200 dark:border-emerald-900/50 text-xs">
                 <template v-if="item.ocenaSacuvana">
                   <p class="font-bold text-emerald-900 dark:text-emerald-300">Hvala na oceni: {{ item.mojaOcena }} / 5</p>
@@ -132,20 +126,18 @@ const formatDate = (dateStr: string) => {
                   </button>
                 </template>
               </div>
-
               <p v-if="item.status === 'otkazano'" class="mt-3 text-xs text-rose-700 dark:text-rose-300">
                 Rezervacija je otkazana i nije uključena u ukupnu cenu.
               </p>
             </div>
-
             <div class="flex items-center justify-between border-t border-slate-100 dark:border-slate-800 pt-3 mt-3">
-              <!-- Ispravljeno item.price -->
+              <!-- ukupna cene necekg naprimer -->
               <div class="text-sm font-extrabold text-emerald-700 dark:text-emerald-400">
                 {{ (item.price * item.kolicina).toLocaleString('sr-RS') }} RSD
               </div>
               <div class="print-hidden flex items-center gap-3">
                 <template v-if="item.status === 'rezervisano'">
-                  <!-- Pristizanje je simulirano promenom statusa, bez stvarne dostave. -->
+                  <!-- Pristizanje je simulirano promenom statusa, bez dostavee -->
                   <button @click="emit('set-status', item.cartId, 'pristiglo')" class="text-xs text-emerald-700 dark:text-emerald-400 underline hover:text-emerald-800">Simuliraj pristizanje</button>
                   <button @click="emit('set-status', item.cartId, 'otkazano')" class="text-xs text-rose-700 dark:text-rose-400 underline hover:text-rose-800">Otkaži rezervaciju</button>
                 </template>
@@ -157,7 +149,6 @@ const formatDate = (dateStr: string) => {
           </div>
         </div>
       </div>
-
       <!-- Suma Rezervacije -->
       <div class="print-hidden bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-md h-fit space-y-4">
         <h3 class="text-lg font-bold text-slate-900 dark:text-white border-b border-slate-100 dark:border-slate-800 pb-3">Suma Rezervacije</h3>
@@ -185,12 +176,10 @@ const formatDate = (dateStr: string) => {
     </div>
   </div>
 </template>
-
 <style scoped>
 .print-only {
   display: none;
 }
-
 @media print {
   .print-only {
     display: block !important;

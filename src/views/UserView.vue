@@ -18,7 +18,7 @@ const activeReservationCount = computed(() =>
   props.cart.filter(item => item.status !== 'otkazano').length
 );
 
-// Lokalna forma koja se popunjava podacima trenutnog korisnika
+//Lokalna forma koja se popunjava podacima trenutnog korisnika
 const form = reactive<User>({
   ime: props.currentUser?.ime || '',
   prezime: props.currentUser?.prezime || '',
@@ -35,7 +35,7 @@ const passwordForm = reactive({
 const passwordMessage = ref('');
 const passwordMessageIsError = ref(false);
 
-// Sinhronizacija ako se korisnik promeni spolja
+//Sinhronizacija ako se korisnik promeni 
 watch(() => props.currentUser, (newUser) => {
   if (newUser) {
     form.ime = newUser.ime;
@@ -105,7 +105,7 @@ const handlePasswordChange = async () => {
     </div>
 
     <div v-else class="grid grid-cols-1 md:grid-cols-3 gap-8">
-      <!-- Leva kolona: Info kartica i Statistika -->
+      <!-- Leva kolona  innfo kartica i Stats -->
       <div class="space-y-6">
         <div class="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm text-center">
           <div class="w-20 h-20 bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-400 rounded-full flex items-center justify-center text-3xl font-bold mx-auto mb-4">
@@ -132,7 +132,7 @@ const handlePasswordChange = async () => {
         </div>
       </div>
 
-      <!-- Desna kolona: Forma za izmenu podataka -->
+      <!-- Desna kolona Forma za izmenu podataka -->
       <div class="md:col-span-2 bg-white dark:bg-slate-900 p-8 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm">
         <h3 class="text-lg font-bold text-slate-900 dark:text-white mb-6">Izmena Ličnih Podataka</h3>
         

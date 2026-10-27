@@ -27,9 +27,9 @@ const router = createRouter({
       meta: { requiresAuth: true }
     },
     {
-     path: '/login',
-     name: 'login',
-    component: LoginView
+      path: '/login',
+      name: 'login',
+      component: LoginView
     },
     {
       path: '/register',
@@ -44,7 +44,7 @@ const router = createRouter({
   ]
 })
 
-// Ovo je navigaciona zaštita prototipa; stvarna autorizacija zahteva serversku proveru.
+// Ovo je navigaciona zaštita prototipa stvarna autorizacija zahteva serversku proveru
 router.beforeEach((to) => {
   if (to.meta.requiresAuth && !localStorage.getItem('flora_user')) {
     return { name: 'login', query: { redirect: to.fullPath } };

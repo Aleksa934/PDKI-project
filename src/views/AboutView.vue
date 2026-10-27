@@ -8,10 +8,10 @@
         <i class="fa-solid fa-seedling text-4xl"></i>
       </div>
       <h1 class="text-3xl sm:text-4xl font-extrabold tracking-tight text-slate-900 dark:text-white">
-        Dobrodošli u <span class="text-emerald-600 dark:text-emerald-400">FloraOazu</span>
+        Dobrodošli u <span class="text-emerald-600 dark:text-emerald-400">FloraDom</span>
       </h1>
       <p class="text-base text-slate-600 dark:text-slate-400 max-w-2xl mx-auto leading-relaxed">
-        Digitalna oaza za sve ljubitelje sobnog bilja. Spajamo strast prema prirodi sa modernom tehnologijom kako bismo vam olakšali izbor, negu i rezervaciju vaših omiljenih biljaka.
+         Za sve ljubitelje sobnog bilja. Spajamo strast prema prirodi sa modernom tehnologijom kako bismo vam olakšali izbor, negu i rezervaciju vaših omiljenih biljaka.
       </p>
     </div>
 
@@ -33,7 +33,7 @@
         </div>
         <h3 class="font-bold text-slate-900 dark:text-white text-lg">Naša Vizija</h3>
         <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
-          Postati vodeća digitalna platforma za edukaciju i kupovinu biljaka, uz podršku pametnog asistenta (Flora Bota) koji odgovara na sva pitanja u hodu.
+          Postati vodeća digitalna platforma za edukaciju i kupovinu biljaka, uz podršku pametnog asistenta (Dom Bota) koji odgovara na sva pitanja u hodu.
         </p>
       </div>
 
@@ -53,7 +53,7 @@
       <div class="space-y-2 text-center md:text-left">
         <h3 class="text-xl font-bold">Imate pitanja ili predloge?</h3>
         <p class="text-xs text-emerald-200 max-w-md">
-          Naš tim stručnjaka i Flora Bot asistent su uvek tu da vam pomognu oko izbora savršene biljke za vaš prostor.
+          Naš tim stručnjaka i Dom Bot asistent su uvek tu da vam pomognu oko izbora savršene biljke za vaš prostor.
         </p>
       </div>
       <router-link to="/" class="bg-amber-400 hover:bg-amber-300 text-slate-900 font-bold px-6 py-3 rounded-2xl text-xs transition shadow-lg whitespace-nowrap">

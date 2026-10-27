@@ -15,7 +15,7 @@ const getAccounts = (): StoredAccount[] => {
 };
 
 const hashPassword = async (password: string, salt: Uint8Array<ArrayBuffer>): Promise<string> => {
-  //ovo za Heširanje sam ht
+  //ovo za Heširanje sam hteo da testiram samo nesto 
   const key = await crypto.subtle.importKey(
     'raw',
     new TextEncoder().encode(password),

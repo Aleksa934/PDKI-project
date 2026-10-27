@@ -41,7 +41,7 @@ const notification = reactive<{ message: string; type: 'success' | 'error' | 'in
 });
 let toastTimeout: ReturnType<typeof setTimeout> | undefined;
 
-// Dark mode state sa automatskim dodavanjem/uklanjanjem klase sa html elementa
+// Dark mode 
 const isDark = ref<boolean>(JSON.parse(localStorage.getItem('flora_dark') || 'false'));
 
 const applyTheme = (dark: boolean) => {
@@ -52,7 +52,7 @@ const applyTheme = (dark: boolean) => {
   }
 };
 
-// Primeni temu odmah pri pokretanju aplikacije
+// Primeni odmah
 applyTheme(isDark.value);
 
 watch(cart, (newCart) => {
@@ -173,7 +173,7 @@ const confirmReservations = () => {
 };
 
 const saveRating = (item: CartItem) => {
-  // Ocenu može da ostavi samo korisnik za pristiglu stavku i to jednom.
+  // Ocenu može da ostavi samo korisnik za pristiglu stavku i to jednom
   if (item.status !== 'pristiglo' || item.mojaOcena === null || item.ocenaSacuvana) {
     showToast('Ocenjivanje je dostupno za pristigle biljke sa izabranom ocenom.', 'error');
     return;
@@ -196,14 +196,14 @@ const saveProfile = (user: User) => {
     return;
   }
   if (previousEmail.trim().toLowerCase() !== user.email.trim().toLowerCase()) {
-    // Sačuvaj postojeću korpu i pod novim email ključem kada korisnik promeni email.
+    // Sačuvaj postojeću korpu i pod novim email  kada korisnik promeni email.
     localStorage.setItem(cartKey(user.email), JSON.stringify(cart.value));
   }
   currentUser.value = user;
   showToast('Profil uspešno sačuvan!');
 };
 
-// Traži potvrdu pre odjave da bi sprečio slučajan gubitak aktivne sesije.
+// Traži potvrdu pre odjave da bi sprečio slučajan gubitak aktivne sesije ili session
 const logout = () => {
   if (window.confirm('Da li ste sigurni da želite da se odjavite?')) {
     currentUser.value = null;
@@ -215,7 +215,7 @@ const logout = () => {
 
 <template>
   <div class="min-h-screen flex flex-col justify-between bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 transition-colors duration-300 relative">
-    <!-- Header samo za pocetak eto -->
+    <!-- Headrr -->
     <header class="print-hidden bg-emerald-800 dark:bg-emerald-950 text-white shadow-lg sticky top-0 z-40 border-b border-emerald-700/40 dark:border-emerald-900">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
         <div class="flex items-center space-x-3 cursor-pointer" @click="goTo('/')">
@@ -243,7 +243,7 @@ const logout = () => {
         </nav>
 
         <div class="flex items-center space-x-3">
-          <!-- Dark Mode Toggle Button -->
+          <!-- Dark Mode Toggle dugme -->
           <button @click="toggleDark" class="p-2.5 bg-emerald-700 dark:bg-emerald-900 hover:bg-emerald-600 rounded-xl text-white transition" title="Promeni temu">
             <i :class="isDark ? 'fa-solid fa-sun text-amber-300' : 'fa-solid fa-moon text-slate-100'"></i>
           </button>

@@ -51,7 +51,7 @@ const filteredPlants = computed(() => {
   const careQuery = filters.value.careQuery.trim().toLowerCase();
   const reviewQuery = filters.value.reviewQuery.trim().toLowerCase();
 
-  // Svaki kriterijum se proverava odvojeno, pa korisnik može da kombinuje više filtera.
+  // Svaki kriterijum se proverava odvojeno pa korisnik može da kombinuje više filtera ili da izabere
   return plants.value.filter(p => {
     const reviews = getReviews(p);
     const matchName = !nameQuery || `${p.name} ${p.latin_name}`.toLowerCase().includes(nameQuery);
@@ -159,7 +159,7 @@ const formatDate = (dateStr: string) => {
 
 <template>
   <div class="space-y-8">
-    <!-- Hero & Pretraga -->
+    <!--Pretraga -->
     <div class="bg-gradient-to-r from-emerald-900 to-teal-800 text-white rounded-3xl p-6 sm:p-8 shadow-xl relative overflow-hidden">
       <h1 class="text-2xl sm:text-4xl font-extrabold mb-3">Pronađite savršenu biljku za Vaš dom</h1>
       <p class="text-emerald-100 max-w-2xl text-sm sm:text-base mb-6">Pretražujte naš bogati katalog sa detaljnim uputstvima za negu i recenzijama.</p>
@@ -192,7 +192,7 @@ const formatDate = (dateStr: string) => {
       </div>
     </div>
 
-    <!-- Napredni Filteri -->
+    <!-- Filteri -->
     <div v-if="showAdvancedFilters" class="bg-white p-6 rounded-2xl border border-slate-200 shadow-md grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
       <div>
         <label class="block text-xs font-bold uppercase text-slate-500 mb-1" for="planting-search">Uputstvo za sadnju</label>
@@ -317,8 +317,7 @@ const formatDate = (dateStr: string) => {
         </div>
       </div>
     </div>
-
-    <!-- Quick View Modal -->
+    <!-- View da se proveri jedna biljka -->
     <Teleport to="body">
       <div v-if="selectedPlantForQuickView" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4" @click.self="selectedPlantForQuickView = null">
       <div class="bg-white dark:bg-slate-900 dark:text-white rounded-3xl max-w-2xl w-full p-6 sm:p-8 shadow-2xl relative max-h-[90vh] overflow-y-auto border border-slate-200 dark:border-slate-800">
