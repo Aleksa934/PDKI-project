@@ -14,7 +14,7 @@ const emit = defineEmits<{
   (e: 'go-catalog'): void;
 }>();
 
-// Otkazane rezervacije se izostavljaju iz ukupnog iznosa.
+// Otkazane rezervacije se izostavljaju iz ukupnog iznosa
 const cartTotal = computed(() => {
   return props.cart
     .filter(item => item.status !== 'otkazano')
